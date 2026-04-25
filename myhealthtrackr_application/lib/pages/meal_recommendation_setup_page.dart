@@ -155,7 +155,7 @@ class _MealRecommendationSetupPageState
     'Breakfast',
     'Lunch',
     'Dinner',
-    'Snack',
+    'Snacks',
   ];
 
   static const List<String> _dietTargets = <String>[
@@ -1336,13 +1336,16 @@ class _MealRecommendationSetupPageState
   }
 
   Widget _buildMealGroupTabs(List<MealPlanMealGroupData> groups) {
+    final orderedGroups = _orderedMealGroups(groups);
+
     return DefaultTabController(
-      length: groups.length,
+      length: orderedGroups.length,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TabBar(
             isScrollable: true,
+            tabAlignment: TabAlignment.center,
             labelColor: AppColours.onDark,
             unselectedLabelColor: AppColours.textMuted,
             indicatorColor: AppColours.primary,
@@ -1356,19 +1359,60 @@ class _MealRecommendationSetupPageState
               fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
-            tabs: [for (final group in groups) Tab(text: group.mealType)],
+            tabs: [
+              for (final group in orderedGroups)
+                Tab(text: _mealTypeTabLabel(group.mealType)),
+            ],
           ),
           const SizedBox(height: 14),
           Expanded(
             child: TabBarView(
               children: [
-                for (final group in groups) _buildMealGroupTabContent(group),
+                for (final group in orderedGroups)
+                  _buildMealGroupTabContent(group),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  List<MealPlanMealGroupData> _orderedMealGroups(
+    List<MealPlanMealGroupData> groups,
+  ) {
+    final orderedGroups = List<MealPlanMealGroupData>.of(groups);
+    orderedGroups.sort((a, b) {
+      final aIndex = _mealTypeSortIndex(a.mealType);
+      final bIndex = _mealTypeSortIndex(b.mealType);
+      if (aIndex != bIndex) return aIndex.compareTo(bIndex);
+      return a.mealType.compareTo(b.mealType);
+    });
+    return orderedGroups;
+  }
+
+  int _mealTypeSortIndex(String mealType) {
+    switch (mealType.trim().toLowerCase()) {
+      case 'breakfast':
+        return 0;
+      case 'lunch':
+        return 1;
+      case 'dinner':
+        return 2;
+      case 'snack':
+      case 'snacks':
+        return 3;
+      default:
+        return 99;
+    }
+  }
+
+  String _mealTypeTabLabel(String mealType) {
+    final normalizedMealType = mealType.trim().toLowerCase();
+    if (normalizedMealType == 'snack' || normalizedMealType == 'snacks') {
+      return 'Snacks';
+    }
+    return mealType;
   }
 
   Widget _buildMealGroupTabContent(MealPlanMealGroupData group) {
