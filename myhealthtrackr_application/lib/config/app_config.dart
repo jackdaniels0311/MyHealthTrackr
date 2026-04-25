@@ -76,8 +76,14 @@ class AppConfig {
   static Uri userMealItemUri(int userId, int mealItemId) => Uri.parse(
     '${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/meal-items/$mealItemId',
   );
-  static Uri userSavedMealsUri(int userId) =>
-      Uri.parse('${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/saved-meals');
+  static Uri userSavedMealsUri(int userId, {String? mealType}) =>
+      Uri.parse(
+        '${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/saved-meals',
+      ).replace(
+        queryParameters: mealType == null || mealType.trim().isEmpty
+            ? null
+            : {'meal_type': mealType.trim()},
+      );
   static Uri userSavedMealUri(int userId, int savedMealId) => Uri.parse(
     '${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/saved-meals/$savedMealId',
   );

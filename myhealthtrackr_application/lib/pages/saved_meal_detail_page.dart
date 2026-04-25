@@ -149,7 +149,10 @@ class _SavedMealDetailPageState extends State<SavedMealDetailPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${_meal.items.length} item${_meal.items.length == 1 ? '' : 's'} saved',
+            [
+              '${_meal.items.length} item${_meal.items.length == 1 ? '' : 's'} saved',
+              if (_meal.mealType != null) _meal.mealType!,
+            ].join(' • '),
             style: AppTextStyles.bodyMuted.copyWith(
               color: AppColours.textMuted,
               fontSize: 15,

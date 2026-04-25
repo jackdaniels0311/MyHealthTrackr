@@ -469,6 +469,7 @@ class _MealRecommendationSetupPageState
   Future<void> _saveMealRecommendation(
     MealPlanMealData meal, {
     required String cardKey,
+    required String mealType,
   }) async {
     if (_savedMealKeys.contains(cardKey) || _savingMealKeys.contains(cardKey)) {
       return;
@@ -483,6 +484,7 @@ class _MealRecommendationSetupPageState
         return _savedMealsService.createMeal(
           session: session,
           name: meal.name,
+          mealType: _normaliseSavedMealType(mealType),
           items: [
             SavedMealItemData(
               name: meal.name,
@@ -1710,7 +1712,11 @@ class _MealRecommendationSetupPageState
             child: ElevatedButton.icon(
               onPressed: isSaving || isSaved
                   ? null
-                  : () => _saveMealRecommendation(meal, cardKey: cardKey),
+                  : () => _saveMealRecommendation(
+                      meal,
+                      cardKey: cardKey,
+                      mealType: groupMealType,
+                    ),
               icon: isSaving
                   ? const SizedBox(
                       width: 18,
@@ -1771,6 +1777,15 @@ class _MealRecommendationSetupPageState
       meal.carbs.toStringAsFixed(2),
       meal.fat.toStringAsFixed(2),
     ].join('|');
+  }
+
+  String _normaliseSavedMealType(String mealType) {
+    final normalized = mealType.trim().toLowerCase();
+    if (normalized == 'snack' || normalized == 'snacks') return 'Snacks';
+    if (normalized == 'breakfast') return 'Breakfast';
+    if (normalized == 'lunch') return 'Lunch';
+    if (normalized == 'dinner') return 'Dinner';
+    return mealType.trim();
   }
 }
 

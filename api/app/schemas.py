@@ -273,11 +273,13 @@ class SavedMealItemOut(SavedMealItemBase):
 
 class SavedMealCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
+    meal_type: str = Field(min_length=1, max_length=100)
     items: list[SavedMealItemCreate] = Field(min_length=1)
 
 
 class SavedMealUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
+    meal_type: str | None = Field(default=None, min_length=1, max_length=100)
     items: list[SavedMealItemCreate] | None = Field(default=None, min_length=1)
 
 
@@ -287,6 +289,7 @@ class SavedMealOut(BaseModel):
     saved_meal_id: int
     user_id: int
     name: str
+    meal_type: str | None = None
     created_at: datetime
     updated_at: datetime
     items: list[SavedMealItemOut]

@@ -9,10 +9,13 @@ class SavedMealsService {
 
   final ApiClient _apiClient;
 
-  Future<List<SavedMealData>> fetchMeals({required AuthSession session}) async {
+  Future<List<SavedMealData>> fetchMeals({
+    required AuthSession session,
+    String? mealType,
+  }) async {
     final userId = await _fetchCurrentUserId(session: session);
     final mealsJson = await _apiClient.getJsonList(
-      AppConfig.userSavedMealsUri(userId),
+      AppConfig.userSavedMealsUri(userId, mealType: mealType),
       session: session,
     );
     return mealsJson.map(SavedMealData.fromApi).toList(growable: false);
@@ -21,6 +24,7 @@ class SavedMealsService {
   Future<SavedMealData> createMeal({
     required AuthSession session,
     required String name,
+    required String mealType,
     required List<SavedMealItemData> items,
   }) async {
     final userId = await _fetchCurrentUserId(session: session);
@@ -29,6 +33,7 @@ class SavedMealsService {
       session: session,
       body: {
         'name': name.trim(),
+        'meal_type': mealType.trim(),
         'items': items
             .map((item) => item.toApiPayload())
             .toList(growable: false),
@@ -46,6 +51,7 @@ class SavedMealsService {
     required AuthSession session,
     required int savedMealId,
     required String name,
+    required String mealType,
     required List<SavedMealItemData> items,
   }) async {
     final userId = await _fetchCurrentUserId(session: session);
@@ -54,6 +60,7 @@ class SavedMealsService {
       session: session,
       body: {
         'name': name.trim(),
+        'meal_type': mealType.trim(),
         'items': items
             .map((item) => item.toApiPayload())
             .toList(growable: false),
@@ -122,6 +129,7 @@ class SavedMealData {
     required this.id,
     required this.userId,
     required this.name,
+    required this.mealType,
     required this.items,
     required this.createdAt,
     required this.updatedAt,
@@ -130,6 +138,7 @@ class SavedMealData {
   final int id;
   final int userId;
   final String name;
+  final String? mealType;
   final List<SavedMealItemData> items;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -146,6 +155,7 @@ class SavedMealData {
       id: id,
       userId: userId,
       name: name,
+      mealType: _nullIfBlank(json['meal_type']?.toString()),
       items: itemsJson
           .whereType<Map<String, dynamic>>()
           .map(SavedMealItemData.fromApi)
@@ -376,6 +386,12 @@ DateTime? _readNullableDateTime(Object? value) {
   final text = value?.toString().trim();
   if (text == null || text.isEmpty) return null;
   return DateTime.tryParse(text);
+}
+
+String? _nullIfBlank(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  return trimmed;
 }
 
 double? _scaleNullable(double? value, double factor) {

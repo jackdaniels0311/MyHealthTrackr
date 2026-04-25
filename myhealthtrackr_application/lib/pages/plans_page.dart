@@ -311,7 +311,10 @@ class _PlansPageState extends State<PlansPage> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '${meal.items.length} item${meal.items.length == 1 ? '' : 's'}',
+                          [
+                            '${meal.items.length} item${meal.items.length == 1 ? '' : 's'}',
+                            if (meal.mealType != null) meal.mealType!,
+                          ].join(' • '),
                           style: AppTextStyles.bodyMuted.copyWith(
                             color: AppColours.textMuted,
                             fontSize: 14,

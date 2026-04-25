@@ -4,6 +4,7 @@ import 'package:myhealthtrackr/pages/saved_meal_item_editor_page.dart';
 import 'package:myhealthtrackr/services/api_client.dart';
 import 'package:myhealthtrackr/services/auth_scope.dart';
 import 'package:myhealthtrackr/services/food_service.dart';
+import 'package:myhealthtrackr/services/meal_logging_service.dart';
 import 'package:myhealthtrackr/services/saved_meals_service.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_icons.dart';
@@ -27,6 +28,8 @@ class _SavedMealEditorPageState extends State<SavedMealEditorPage> {
   final FocusNode _nameFocusNode = FocusNode();
   late List<SavedMealItemData> _items;
   String? _initialMealName;
+  String? _initialMealType;
+  String? _selectedMealType;
   List<String>? _initialItemSignatures;
   bool _isSaving = false;
 
@@ -42,6 +45,7 @@ class _SavedMealEditorPageState extends State<SavedMealEditorPage> {
     _items = List<SavedMealItemData>.from(
       widget.existingMeal?.items ?? const [],
     );
+    _selectedMealType = widget.existingMeal?.mealType;
     _captureInitialSnapshot();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -209,6 +213,38 @@ class _SavedMealEditorPageState extends State<SavedMealEditorPage> {
               hintText: 'e.g. Chicken rice bowl',
               suffixText: null,
             ),
+          ),
+          const SizedBox(height: 18),
+          _buildFieldLabel('Meal type'),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            initialValue:
+                MealLoggingService.calorieMealTypes.contains(_selectedMealType)
+                ? _selectedMealType
+                : null,
+            dropdownColor: AppColours.secondary,
+            iconEnabledColor: AppColours.textMuted,
+            style: const TextStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              color: AppColours.onDark,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            decoration: _inputDecoration(
+              hintText: 'Choose when this meal is usually logged',
+              suffixText: null,
+            ),
+            items: MealLoggingService.calorieMealTypes
+                .map(
+                  (mealType) => DropdownMenuItem<String>(
+                    value: mealType,
+                    child: Text(mealType),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: _isSaving
+                ? null
+                : (value) => setState(() => _selectedMealType = value),
           ),
         ],
       ),
@@ -500,6 +536,7 @@ class _SavedMealEditorPageState extends State<SavedMealEditorPage> {
   bool get _hasUnsavedChanges {
     _captureInitialSnapshot();
     return _normalizedMealName != _initialMealName ||
+        _selectedMealType != _initialMealType ||
         !_listEquals(_itemSignatures(_items), _initialItemSignatures!);
   }
 
@@ -560,6 +597,11 @@ class _SavedMealEditorPageState extends State<SavedMealEditorPage> {
       _showMessage('Please give this meal a name before saving it.');
       return;
     }
+    final mealType = _selectedMealType?.trim();
+    if (mealType == null || mealType.isEmpty) {
+      _showMessage('Please choose a meal type before saving this meal.');
+      return;
+    }
     if (_items.isEmpty) {
       _showMessage('Please add at least one item before saving this meal.');
       return;
@@ -576,12 +618,14 @@ class _SavedMealEditorPageState extends State<SavedMealEditorPage> {
             session: session,
             savedMealId: widget.existingMeal!.id,
             name: name,
+            mealType: mealType,
             items: _items,
           );
         }
         return _savedMealsService.createMeal(
           session: session,
           name: name,
+          mealType: mealType,
           items: _items,
         );
       });
@@ -668,6 +712,7 @@ class _SavedMealEditorPageState extends State<SavedMealEditorPage> {
 
   void _captureInitialSnapshot() {
     _initialMealName ??= _normalizedMealName;
+    _initialMealType ??= _selectedMealType;
     _initialItemSignatures ??= _itemSignatures(_items);
   }
 }

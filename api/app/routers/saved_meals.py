@@ -1,8 +1,8 @@
 from datetime import datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Response, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..auth import get_current_user
@@ -30,17 +30,26 @@ _food_history_service = UserFoodHistoryService()
 @router.get("/users/{user_id}/saved-meals", response_model=list[SavedMealOut])
 def list_saved_meals(
     user_id: int,
+    meal_type: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     enforce_user_scope(user_id, current_user)
 
+    normalized_meal_type = _normalize_saved_meal_type(meal_type)
     query = (
         select(SavedMeal)
         .options(selectinload(SavedMeal.items))
         .where(SavedMeal.user_id == user_id)
         .order_by(SavedMeal.updated_at.desc(), SavedMeal.saved_meal_id.desc())
     )
+    if normalized_meal_type is not None:
+        query = query.where(
+            or_(
+                SavedMeal.meal_type == normalized_meal_type,
+                SavedMeal.meal_type.is_(None),
+            )
+        )
     return db.execute(query).scalars().all()
 
 
@@ -57,7 +66,11 @@ def create_saved_meal(
 ):
     enforce_user_scope(user_id, current_user)
 
-    saved_meal = SavedMeal(user_id=user_id, name=payload.name.strip())
+    saved_meal = SavedMeal(
+        user_id=user_id,
+        name=payload.name.strip(),
+        meal_type=_normalize_saved_meal_type(payload.meal_type, required=True),
+    )
     db.add(saved_meal)
     db.flush()
 
@@ -90,6 +103,12 @@ def update_saved_meal(
 
     if payload.name is not None:
         saved_meal.name = payload.name.strip()
+
+    if payload.meal_type is not None:
+        saved_meal.meal_type = _normalize_saved_meal_type(
+            payload.meal_type,
+            required=True,
+        )
 
     if payload.items is not None:
         saved_meal.items = _build_saved_meal_items(payload.items)
@@ -208,6 +227,34 @@ def _get_saved_meal_with_items(db: Session, *, user_id: int, saved_meal_id: int)
 
 def _build_saved_meal_items(items: list[SavedMealItemCreate]) -> list[SavedMealItem]:
     return [SavedMealItem(**_normalized_item_data(item)) for item in items]
+
+
+def _normalize_saved_meal_type(
+    meal_type: str | None,
+    *,
+    required: bool = False,
+) -> str | None:
+    if meal_type is None:
+        if required:
+            raise HTTPException(status_code=400, detail="Saved meal type is required")
+        return None
+    normalized = meal_type.strip().lower()
+    if not normalized:
+        if required:
+            raise HTTPException(status_code=400, detail="Saved meal type is required")
+        return None
+    if normalized == "snack":
+        return "Snacks"
+    allowed = {
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "snacks": "Snacks",
+    }
+    resolved = allowed.get(normalized)
+    if resolved is None:
+        raise HTTPException(status_code=400, detail="Invalid saved meal type")
+    return resolved
 
 
 def _normalized_item_data(item: SavedMealItemCreate) -> dict[str, object]:

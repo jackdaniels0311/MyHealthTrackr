@@ -636,7 +636,10 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${meal.items.length} item${meal.items.length == 1 ? '' : 's'}',
+                      [
+                        '${meal.items.length} item${meal.items.length == 1 ? '' : 's'}',
+                        if (meal.mealType != null) meal.mealType!,
+                      ].join(' • '),
                       style: AppTextStyles.bodyMuted.copyWith(
                         color: AppColours.textMuted,
                         fontSize: 15,
@@ -774,7 +777,10 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
       final meals = await AuthScope.of(context).withAuthenticatedSession((
         session,
       ) {
-        return _savedMealsService.fetchMeals(session: session);
+        return _savedMealsService.fetchMeals(
+          session: session,
+          mealType: widget.initialMealType,
+        );
       });
       if (!mounted) return;
       setState(() {
