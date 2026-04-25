@@ -40,8 +40,6 @@ class _HomePageState extends State<HomePage> {
   static const Color _proteinColour = AppColours.accentProtein;
   static const Color _fatColour = AppColours.accentFat;
   static const Color _carbColour = AppColours.accentCarbs;
-  static const Color _fibreColour = AppColours.accentLime;
-  static const Color _sugarColour = AppColours.accentPink;
   static const Color _waterColour = AppColours.accentHydration;
   // static const Color _sleepColour = AppColours.accentGreen;
 
@@ -106,22 +104,6 @@ class _HomePageState extends State<HomePage> {
         unit: 'g',
         icon: AppIcons.grainRounded,
         accent: _carbColour,
-      ),
-      _ProgressStat(
-        label: 'Fibre',
-        value: diary.totalFibre,
-        goal: _nutritionTargets?.recommendedFibreG,
-        unit: 'g',
-        icon: AppIcons.ecoRounded,
-        accent: _fibreColour,
-      ),
-      _ProgressStat(
-        label: 'Sugar',
-        value: diary.totalSugar,
-        goal: _nutritionTargets?.recommendedSugarGMax,
-        unit: 'g',
-        icon: AppIcons.cakeRounded,
-        accent: _sugarColour,
       ),
       // _ProgressStat(
       //   label: 'Sleep',
@@ -683,9 +665,8 @@ class _HomePageState extends State<HomePage> {
           session: session,
         );
         final profile = await _profileService.fetchProfile(session: session);
-        final fetchedWeightEntries = await _weightHistoryService.fetchWeightEntries(
-          session: session,
-        );
+        final fetchedWeightEntries = await _weightHistoryService
+            .fetchWeightEntries(session: session);
 
         final weightEntries = fetchedWeightEntries.isNotEmpty
             ? fetchedWeightEntries
