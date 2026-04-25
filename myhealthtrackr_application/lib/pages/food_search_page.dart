@@ -5,6 +5,7 @@ import 'package:myhealthtrackr/services/saved_meals_service.dart';
 import 'package:myhealthtrackr/services/api_client.dart';
 import 'package:myhealthtrackr/services/auth_scope.dart';
 import 'package:myhealthtrackr/services/food_service.dart';
+import 'package:myhealthtrackr/services/meal_logging_service.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_icons.dart';
 import 'package:myhealthtrackr/themes/app_text_styles.dart';
@@ -68,6 +69,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
   List<FoodProduct> _results = const <FoodProduct>[];
   List<SavedMealData> _savedMeals = const <SavedMealData>[];
   int _selectedTabIndex = 0;
+  late String _selectedSavedMealType;
   bool _hasSearched = false;
   bool _isLoadingQuickAdd = false;
   bool _isLoadingSavedMeals = false;
@@ -89,6 +91,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
   @override
   void initState() {
     super.initState();
+    _selectedSavedMealType = _initialSavedMealType();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadQuickAddItems();
@@ -96,6 +99,15 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
         _loadSavedMeals();
       }
     });
+  }
+
+  String _initialSavedMealType() {
+    final initialMealType = widget.initialMealType?.trim();
+    if (initialMealType != null &&
+        MealLoggingService.calorieMealTypes.contains(initialMealType)) {
+      return initialMealType;
+    }
+    return MealLoggingService.calorieMealTypes.first;
   }
 
   @override
@@ -337,9 +349,15 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
   }
 
   List<Widget> _buildSavedMealsSection() {
+    final mealTypeTabs = <Widget>[
+      _buildSavedMealTypeTabs(),
+      const SizedBox(height: 16),
+    ];
+
     if (_isLoadingSavedMeals) {
-      return const <Widget>[
-        Padding(
+      return <Widget>[
+        ...mealTypeTabs,
+        const Padding(
           padding: EdgeInsets.symmetric(vertical: 48),
           child: Center(
             child: CircularProgressIndicator(color: AppColours.primary),
@@ -350,6 +368,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
 
     if (_savedMealsErrorMessage != null) {
       return <Widget>[
+        ...mealTypeTabs,
         _buildInfoCard(
           title: 'Unable to load saved meals',
           message: _savedMealsErrorMessage!,
@@ -359,20 +378,60 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
 
     if (_savedMeals.isEmpty) {
       return <Widget>[
+        ...mealTypeTabs,
         _buildInfoCard(
-          title: 'No saved meals yet',
+          title: 'No $_selectedSavedMealType meals yet',
           message:
-              'Create meals from the Plans page and they will appear here for quick diary logging.',
+              'Create or save a meal for $_selectedSavedMealType and it will appear here for quick diary logging.',
         ),
       ];
     }
 
     return [
+      ...mealTypeTabs,
       for (var index = 0; index < _savedMeals.length; index++) ...[
         if (index > 0) const SizedBox(height: 14),
         _buildSavedMealCard(_savedMeals[index]),
       ],
     ];
+  }
+
+  Widget _buildSavedMealTypeTabs() {
+    final initialIndex = MealLoggingService.calorieMealTypes.indexOf(
+      _selectedSavedMealType,
+    );
+
+    return DefaultTabController(
+      length: MealLoggingService.calorieMealTypes.length,
+      initialIndex: initialIndex < 0 ? 0 : initialIndex,
+      child: TabBar(
+        isScrollable: true,
+        tabAlignment: TabAlignment.center,
+        labelColor: AppColours.onDark,
+        unselectedLabelColor: AppColours.textMuted,
+        indicatorColor: AppColours.primary,
+        indicatorWeight: 3,
+        dividerColor: AppColours.dividerLight.withValues(alpha: 0.4),
+        labelStyle: AppTextStyles.label.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w800,
+        ),
+        unselectedLabelStyle: AppTextStyles.label.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+        onTap: (index) {
+          final mealType = MealLoggingService.calorieMealTypes[index];
+          if (mealType == _selectedSavedMealType) return;
+          setState(() => _selectedSavedMealType = mealType);
+          _loadSavedMeals();
+        },
+        tabs: [
+          for (final mealType in MealLoggingService.calorieMealTypes)
+            Tab(text: mealType),
+        ],
+      ),
+    );
   }
 
   List<Widget> _buildActiveSection() {
@@ -779,7 +838,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
       ) {
         return _savedMealsService.fetchMeals(
           session: session,
-          mealType: widget.initialMealType,
+          mealType: _selectedSavedMealType,
         );
       });
       if (!mounted) return;
