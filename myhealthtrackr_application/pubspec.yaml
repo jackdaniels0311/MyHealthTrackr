@@ -1,0 +1,72 @@
+name: myhealthtrackr
+description: "My Final Year Project application"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  fl_chart: ^1.2.0
+  mobile_scanner: ^7.2.0
+  shared_preferences: ^2.5.4
+  snackify: ^1.2.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/background.jpg
+    - assets/icons/apple.png
+    - assets/icons/google.png
+    - assets/icons/facebook.png
+
+  fonts:
+      - family: MaterialSymbolsOutlined
+        fonts:
+          - asset: assets/fonts/MaterialSymbolsOutlined.ttf
+      - family: SourceSansPro
+        fonts:
+          - asset: assets/fonts/source-sans-pro.extralight.ttf
+            weight: 200
+          - asset: assets/fonts/source-sans-pro.extralight-italic.ttf
+            weight: 200
+            style: italic
+
+          - asset: assets/fonts/source-sans-pro.light.ttf
+            weight: 300
+          - asset: assets/fonts/source-sans-pro.light-italic.ttf
+            weight: 300
+            style: italic
+
+          - asset: assets/fonts/source-sans-pro.regular.ttf
+            weight: 400
+          - asset: assets/fonts/source-sans-pro.italic.ttf
+            weight: 400
+            style: italic
+
+          - asset: assets/fonts/source-sans-pro.semibold.ttf
+            weight: 600
+          - asset: assets/fonts/source-sans-pro.semibold-italic.ttf
+            weight: 600
+            style: italic
+
+          - asset: assets/fonts/source-sans-pro.bold.ttf
+            weight: 700
+          - asset: assets/fonts/source-sans-pro.bold-italic.ttf
+            weight: 700
+            style: italic
+
+          - asset: assets/fonts/source-sans-pro.black.ttf
+            weight: 900
+          - asset: assets/fonts/source-sans-pro.black-italic.ttf
+            weight: 900
+            style: italic

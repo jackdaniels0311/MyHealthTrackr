@@ -1,0 +1,61 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+virtualenv/
+create/
+your/
+in/
+a/
+project/
+optional:/
+\#/
+
+# Backend runtime/generated files
+api/.pytest_cache/
+api/**/__pycache__/
+api/*.db
+api/*.sqlite
+
+# Flutter/Dart
+myhealthtrackr_application/.dart_tool/
+myhealthtrackr_application/.flutter-plugins
+myhealthtrackr_application/.flutter-plugins-dependencies
+myhealthtrackr_application/.pub-cache/
+myhealthtrackr_application/.pub/
+myhealthtrackr_application/build/
+myhealthtrackr_application/coverage/
+myhealthtrackr_application/**/Flutter/.last_build_id
+myhealthtrackr_application/android/app/debug/
+myhealthtrackr_application/android/app/profile/
+myhealthtrackr_application/android/app/release/
+
+# Xcode/Android generated user state
+myhealthtrackr_application/ios/Pods/
+myhealthtrackr_application/ios/.symlinks/
+myhealthtrackr_application/ios/Flutter/Flutter.framework
+myhealthtrackr_application/ios/Flutter/Flutter.podspec
+myhealthtrackr_application/ios/Runner.xcworkspace/xcuserdata/
+myhealthtrackr_application/ios/Runner.xcodeproj/xcuserdata/
+myhealthtrackr_application/android/.gradle/
+
+# Docker/local data
+db_data/
+caddy_data/
+caddy_config/
