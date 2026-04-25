@@ -87,6 +87,9 @@ class AppConfig {
   static Uri userMealPlanGenerateUri(int userId) => Uri.parse(
     '${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/meal-plans/generate',
   );
+  static Uri userMealPlanPreferencesUri(int userId) => Uri.parse(
+    '${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/meal-plans/preferences',
+  );
   static Uri userWeightEntriesUri(int userId) => Uri.parse(
     '${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/weight-entries',
   );

@@ -388,6 +388,10 @@ class MealPlanGenerateRequest(BaseModel):
     disliked_cuisines: str | None = Field(default=None, max_length=500)
 
 
+class MealPlanPreferencesOut(MealPlanGenerateRequest):
+    has_saved_preferences: bool = False
+
+
 class MealPlanOut(BaseModel):
     generated_at: datetime
     goal_type: GoalType

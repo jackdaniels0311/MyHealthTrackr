@@ -237,15 +237,23 @@ class _MealRecommendationSetupPageState
       ) async {
         final profile = await _profileService.fetchProfile(session: session);
         final goal = await _goalService.fetchCurrentGoal(session: session);
-        return (profile: profile, goal: goal);
+        final savedPreferences = await _mealPlanService.fetchPreferences(
+          session: session,
+        );
+        return (
+          profile: profile,
+          goal: goal,
+          savedPreferences: savedPreferences,
+        );
       });
 
       if (!mounted) return;
       setState(() {
-        _selectedGoalType = results.goal?.goalType;
-        _allergiesController.text = results.profile.allergies ?? '';
-        _dietaryPreferencesController.text =
-            results.profile.dietaryPreferences ?? '';
+        _applyLoadedDefaults(
+          profile: results.profile,
+          goal: results.goal,
+          savedPreferences: results.savedPreferences,
+        );
         _isLoading = false;
       });
     } on AuthFailure catch (error) {
@@ -263,6 +271,65 @@ class _MealRecommendationSetupPageState
         _isLoading = false;
       });
     }
+  }
+
+  void _applyLoadedDefaults({
+    required UserProfile profile,
+    required UserGoal? goal,
+    required MealPlanSavedPreferences savedPreferences,
+  }) {
+    if (!savedPreferences.hasSavedPreferences) {
+      _selectedGoalType = goal?.goalType;
+      _allergiesController.text = profile.allergies ?? '';
+      _dietaryPreferencesController.text = profile.dietaryPreferences ?? '';
+      return;
+    }
+
+    _selectedGoalType = savedPreferences.goalType ?? goal?.goalType;
+    _allergiesController.text =
+        savedPreferences.allergies ?? profile.allergies ?? '';
+    _dietaryPreferencesController.text =
+        savedPreferences.dietaryPreferences ?? profile.dietaryPreferences ?? '';
+    _selectedDietPlanType =
+        savedPreferences.dietPlanType ?? _dietPlanTypes.first.name;
+    _replaceSet(
+      _selectedDietTargets,
+      savedPreferences.dietTargets.isEmpty
+          ? <String>{_dietTargets.first}
+          : savedPreferences.dietTargets,
+    );
+    _replaceSet(
+      _selectedMealTypes,
+      savedPreferences.mealTypes.isEmpty
+          ? <String>{'Breakfast', 'Lunch', 'Dinner'}
+          : savedPreferences.mealTypes,
+    );
+    _dislikedFoodsController.text = savedPreferences.dislikedFoods ?? '';
+    _replaceSet(
+      _likedCuisines,
+      _splitPreferenceList(savedPreferences.likedCuisines),
+    );
+    _replaceSet(
+      _dislikedCuisines,
+      _splitPreferenceList(savedPreferences.dislikedCuisines),
+    );
+  }
+
+  void _replaceSet(Set<String> target, Iterable<String> values) {
+    target
+      ..clear()
+      ..addAll(
+        values.map((value) => value.trim()).where((value) => value.isNotEmpty),
+      );
+  }
+
+  List<String> _splitPreferenceList(String? value) {
+    if (value == null || value.trim().isEmpty) return const <String>[];
+    return value
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
   }
 
   Future<void> _handleUnauthorizedSession({required String message}) async {
@@ -366,12 +433,18 @@ class _MealRecommendationSetupPageState
     );
 
     try {
-      final plan = await AuthScope.of(context).withAuthenticatedSession(
-        (session) => _mealPlanService.generatePlan(
+      final plan = await AuthScope.of(context).withAuthenticatedSession((
+        session,
+      ) async {
+        await _mealPlanService.savePreferences(
           session: session,
           preferences: preferences,
-        ),
-      );
+        );
+        return _mealPlanService.generatePlan(
+          session: session,
+          preferences: preferences,
+        );
+      });
       if (!mounted) return;
       setState(() {
         _mealPlan = plan;

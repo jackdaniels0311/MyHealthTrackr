@@ -7,6 +7,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    JSON,
     Numeric,
     String,
     UniqueConstraint,
@@ -94,6 +95,14 @@ class User(Base):
     saved_meals: Mapped[list["SavedMeal"]] = relationship(
         "SavedMeal",
         back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    meal_recommendation_preferences: Mapped[
+        "UserMealRecommendationPreference | None"
+    ] = relationship(
+        "UserMealRecommendationPreference",
+        back_populates="user",
+        uselist=False,
         cascade="all, delete-orphan",
     )
     weight_entries: Mapped[list["WeightEntry"]] = relationship(
@@ -390,6 +399,47 @@ class SavedMeal(Base):
         back_populates="saved_meal",
         cascade="all, delete-orphan",
         order_by="SavedMealItem.saved_meal_item_id",
+    )
+
+
+class UserMealRecommendationPreference(Base):
+    __tablename__ = "user_meal_recommendation_preferences"
+
+    meal_recommendation_preference_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("User.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    goal_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    allergies: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    dietary_preferences: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    diet_plan_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    meal_types: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    diet_targets: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    disliked_foods: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    liked_cuisines: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    disliked_cuisines: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped[User] = relationship(
+        "User",
+        back_populates="meal_recommendation_preferences",
     )
 
 

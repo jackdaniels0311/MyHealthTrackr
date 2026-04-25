@@ -12,12 +12,7 @@ class MealPlanService {
     required AuthSession session,
     MealPlanPreferences preferences = const MealPlanPreferences(),
   }) async {
-    final userId = session.userId;
-    if (userId == null || userId <= 0) {
-      throw const ApiFailure(
-        'The current session does not contain a valid user id.',
-      );
-    }
+    final userId = _requireUserId(session);
 
     final response = await _apiClient.postJson(
       AppConfig.userMealPlanGenerateUri(userId),
@@ -31,6 +26,48 @@ class MealPlanService {
       );
     }
     return MealPlanData.fromApi(response);
+  }
+
+  Future<MealPlanSavedPreferences> fetchPreferences({
+    required AuthSession session,
+  }) async {
+    final userId = _requireUserId(session);
+    final response = await _apiClient.getJson(
+      AppConfig.userMealPlanPreferencesUri(userId),
+      session: session,
+    );
+    if (response == null) {
+      return const MealPlanSavedPreferences(hasSavedPreferences: false);
+    }
+    return MealPlanSavedPreferences.fromApi(response);
+  }
+
+  Future<MealPlanSavedPreferences> savePreferences({
+    required AuthSession session,
+    required MealPlanPreferences preferences,
+  }) async {
+    final userId = _requireUserId(session);
+    final response = await _apiClient.putJson(
+      AppConfig.userMealPlanPreferencesUri(userId),
+      session: session,
+      body: preferences.toApiPayload(),
+    );
+    if (response == null) {
+      throw const ApiFailure(
+        'The server returned an empty meal recommendation preference response.',
+      );
+    }
+    return MealPlanSavedPreferences.fromApi(response);
+  }
+
+  int _requireUserId(AuthSession session) {
+    final userId = session.userId;
+    if (userId == null || userId <= 0) {
+      throw const ApiFailure(
+        'The current session does not contain a valid user id.',
+      );
+    }
+    return userId;
   }
 }
 
@@ -130,6 +167,40 @@ class MealPlanData {
       summary: json['summary']?.toString().trim() ?? '',
       estimateNotice: json['estimate_notice']?.toString().trim() ?? '',
       mealGroups: mealGroups,
+    );
+  }
+}
+
+class MealPlanSavedPreferences extends MealPlanPreferences {
+  const MealPlanSavedPreferences({
+    required this.hasSavedPreferences,
+    super.goalType,
+    super.allergies,
+    super.dietaryPreferences,
+    super.dietPlanType,
+    super.mealTypes,
+    super.dietTarget,
+    super.dietTargets,
+    super.dislikedFoods,
+    super.likedCuisines,
+    super.dislikedCuisines,
+  });
+
+  final bool hasSavedPreferences;
+
+  factory MealPlanSavedPreferences.fromApi(Map<String, dynamic> json) {
+    return MealPlanSavedPreferences(
+      hasSavedPreferences: json['has_saved_preferences'] == true,
+      goalType: _trimOrNull(json['goal_type']?.toString()),
+      allergies: _trimOrNull(json['allergies']?.toString()),
+      dietaryPreferences: _trimOrNull(json['dietary_preferences']?.toString()),
+      dietPlanType: _trimOrNull(json['diet_plan_type']?.toString()),
+      mealTypes: _readStringList(json['meal_types']),
+      dietTarget: _trimOrNull(json['diet_target']?.toString()),
+      dietTargets: _readStringList(json['diet_targets']),
+      dislikedFoods: _trimOrNull(json['disliked_foods']?.toString()),
+      likedCuisines: _trimOrNull(json['liked_cuisines']?.toString()),
+      dislikedCuisines: _trimOrNull(json['disliked_cuisines']?.toString()),
     );
   }
 }
@@ -308,9 +379,23 @@ DateTime? _readNullableDateTime(Object? value) {
   return DateTime.tryParse(value.toString());
 }
 
+List<String> _readStringList(Object? value) {
+  if (value is! List) return const <String>[];
+  return value
+      .map((item) => item.toString().trim())
+      .where((item) => item.isNotEmpty)
+      .toList(growable: false);
+}
+
 String? _nullIfBlank(String? value) {
   if (value == null) return null;
   final trimmed = value.trim();
   if (trimmed.isEmpty || trimmed.toLowerCase() == 'none') return null;
+  return trimmed;
+}
+
+String? _trimOrNull(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
   return trimmed;
 }
