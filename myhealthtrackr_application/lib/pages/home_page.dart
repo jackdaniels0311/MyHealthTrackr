@@ -675,22 +675,18 @@ class _HomePageState extends State<HomePage> {
       final snapshot = await authController.withAuthenticatedSession((
         session,
       ) async {
-        final diaryFuture = _mealLoggingService.fetchDiaryDay(
+        final diary = await _mealLoggingService.fetchDiaryDay(
           session: session,
           date: DateTime.now(),
         );
-        final nutritionTargetsFuture = _fetchNutritionTargetsOrNull(
+        final nutritionTargets = await _fetchNutritionTargetsOrNull(
           session: session,
         );
-        final profileFuture = _profileService.fetchProfile(session: session);
-        final weightEntriesFuture = _weightHistoryService.fetchWeightEntries(
+        final profile = await _profileService.fetchProfile(session: session);
+        final fetchedWeightEntries = await _weightHistoryService.fetchWeightEntries(
           session: session,
         );
 
-        final diary = await diaryFuture;
-        final nutritionTargets = await nutritionTargetsFuture;
-        final profile = await profileFuture;
-        final fetchedWeightEntries = await weightEntriesFuture;
         final weightEntries = fetchedWeightEntries.isNotEmpty
             ? fetchedWeightEntries
             : _fallbackWeightEntries(profile);
