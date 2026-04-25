@@ -9,6 +9,7 @@ import 'package:myhealthtrackr/pages/saved_meal_editor_page.dart';
 import 'package:myhealthtrackr/services/api_client.dart';
 import 'package:myhealthtrackr/services/auth_scope.dart';
 import 'package:myhealthtrackr/services/food_service.dart';
+import 'package:myhealthtrackr/services/meal_logging_service.dart';
 import 'package:myhealthtrackr/services/saved_meals_service.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_icons.dart';
@@ -34,6 +35,7 @@ class _PlansPageState extends State<PlansPage> {
   bool _isLoading = true;
   String? _errorMessage;
   List<SavedMealData> _meals = const [];
+  String _selectedMealType = MealLoggingService.calorieMealTypes.first;
 
   @override
   void didChangeDependencies() {
@@ -109,8 +111,11 @@ class _PlansPageState extends State<PlansPage> {
                         _buildErrorState()
                       else if (_meals.isEmpty)
                         _buildEmptyState()
-                      else
-                        ..._buildMealCards(),
+                      else ...[
+                        _buildMealTypeTabs(),
+                        const SizedBox(height: 16),
+                        ..._buildMealCards(_filteredMeals),
+                      ],
                     ],
                   ),
                 ),
@@ -249,13 +254,130 @@ class _PlansPageState extends State<PlansPage> {
     );
   }
 
-  List<Widget> _buildMealCards() {
+  List<SavedMealData> get _filteredMeals {
+    return _meals
+        .where(
+          (meal) => meal.mealType == null || meal.mealType == _selectedMealType,
+        )
+        .toList(growable: false);
+  }
+
+  Widget _buildMealTypeTabs() {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: AppColours.secondary.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _panelBorder),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (
+              var index = 0;
+              index < MealLoggingService.calorieMealTypes.length;
+              index++
+            ) ...[
+              _buildMealTypeTab(MealLoggingService.calorieMealTypes[index]),
+              if (index != MealLoggingService.calorieMealTypes.length - 1)
+                const SizedBox(width: 8),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMealTypeTab(String mealType) {
+    final isSelected = mealType == _selectedMealType;
+    final count = _meals
+        .where((meal) => meal.mealType == null || meal.mealType == mealType)
+        .length;
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedMealType = mealType),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        constraints: const BoxConstraints(minWidth: 116),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColours.primary
+              : AppColours.background.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              mealType,
+              style: AppTextStyles.label.copyWith(
+                color: isSelected ? AppColours.onDark : AppColours.textMuted,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$count saved',
+              style: AppTextStyles.label.copyWith(
+                color: isSelected
+                    ? AppColours.onDark.withValues(alpha: 0.82)
+                    : AppColours.textSubtle,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildMealCards(List<SavedMealData> meals) {
+    if (meals.isEmpty) {
+      return [_buildEmptyMealTypeState()];
+    }
+
     return [
-      for (var index = 0; index < _meals.length; index++) ...[
-        _buildMealCard(_meals[index]),
-        if (index != _meals.length - 1) const SizedBox(height: 16),
+      for (var index = 0; index < meals.length; index++) ...[
+        _buildMealCard(meals[index]),
+        if (index != meals.length - 1) const SizedBox(height: 16),
       ],
     ];
+  }
+
+  Widget _buildEmptyMealTypeState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+      decoration: BoxDecoration(
+        color: AppColours.secondary.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: _panelBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No $_selectedMealType meals yet',
+            style: AppTextStyles.title.copyWith(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Create or save a meal for $_selectedMealType and it will appear here.',
+            style: AppTextStyles.bodyMuted.copyWith(
+              color: AppColours.textMuted,
+              fontSize: 15,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildMealCard(SavedMealData meal) {
