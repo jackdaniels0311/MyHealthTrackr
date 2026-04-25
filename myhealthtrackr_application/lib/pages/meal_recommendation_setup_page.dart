@@ -1248,7 +1248,9 @@ class _MealRecommendationSetupPageState
                       ),
                     )
                   : Text(
-                      _currentStep == _steps.length - 1 ? 'Generate' : 'Next',
+                      _currentStep == _steps.length - 1
+                          ? 'Generate Meals'
+                          : 'Next',
                       style: AppTextStyles.button.copyWith(fontSize: 16),
                     ),
             ),
