@@ -65,6 +65,8 @@ final class AppIcons {
   static const IconData searchRounded = Icons.search_rounded;
   static const IconData shieldOutlined = Icons.shield_outlined;
   static const IconData spaRounded = Icons.spa_rounded;
+  static const IconData thumbDownRounded = Icons.thumb_down_rounded;
+  static const IconData thumbUpRounded = Icons.thumb_up_rounded;
   static const IconData trendingUpRounded = Icons.trending_up_rounded;
   static const IconData visibility = Icons.visibility;
   static const IconData visibilityOff = Icons.visibility_off;

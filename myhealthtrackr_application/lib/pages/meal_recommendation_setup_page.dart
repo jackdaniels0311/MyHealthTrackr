@@ -35,7 +35,11 @@ class _MealRecommendationSetupPageState
     ),
     _SetupStep(
       title: 'Dietary preferences',
-      subtitle: 'Confirm how you prefer to eat and foods you dislike.',
+      subtitle: 'Confirm how you prefer to eat.',
+    ),
+    _SetupStep(
+      title: 'Foods to avoid',
+      subtitle: 'Select foods you dislike or enter your own.',
     ),
     _SetupStep(
       title: 'Choose a plan style',
@@ -78,6 +82,19 @@ class _MealRecommendationSetupPageState
     'Halal',
     'Gluten-free',
     'Dairy-free',
+  ];
+
+  static const List<String> _dislikedFoodOptions = <String>[
+    'Mushrooms',
+    'Olives',
+    'Onions',
+    'Tomatoes',
+    'Seafood',
+    'Tuna',
+    'Eggs',
+    'Avocado',
+    'Beans',
+    'Spicy food',
   ];
 
   static const List<String> _mealTypeOptions = <String>[
@@ -251,6 +268,8 @@ class _MealRecommendationSetupPageState
         }
         return null;
       case 3:
+        return null;
+      case 4:
         if (_selectedDietPlanType == null) {
           return 'Please choose a diet plan type.';
         }
@@ -484,8 +503,10 @@ class _MealRecommendationSetupPageState
       case 2:
         return _buildDietaryPreferencesStep();
       case 3:
-        return _buildPlanStyleStep();
+        return _buildFoodsToAvoidStep();
       case 4:
+        return _buildPlanStyleStep();
+      case 5:
         return _buildCuisineStep();
       default:
         return const SizedBox.shrink();
@@ -534,15 +555,18 @@ class _MealRecommendationSetupPageState
           helperText: 'Select None if you do not have any dietary preferences.',
           quickOptions: _dietaryPreferenceOptions,
         ),
-        const SizedBox(height: 22),
-        _buildTextField(
-          controller: _dislikedFoodsController,
-          label: 'Foods to avoid',
-          hintText: 'Mushrooms, tuna, eggs...',
-          helperText: 'Add foods you dislike, separated by commas.',
-          required: false,
-        ),
       ],
+    );
+  }
+
+  Widget _buildFoodsToAvoidStep() {
+    return _buildSelectableTextStep(
+      controller: _dislikedFoodsController,
+      label: 'Foods to avoid',
+      hintText: 'Enter disliked foods separated by commas',
+      helperText: 'Select quick options or add foods you do not want included.',
+      quickOptions: _dislikedFoodOptions,
+      required: false,
     );
   }
 
@@ -714,6 +738,7 @@ class _MealRecommendationSetupPageState
     required String hintText,
     required String helperText,
     required List<String> quickOptions,
+    bool required = true,
   }) {
     final selectedValues = _splitCommaSeparated(controller.text);
 
@@ -763,6 +788,7 @@ class _MealRecommendationSetupPageState
           label: label,
           hintText: hintText,
           helperText: helperText,
+          required: required,
         ),
       ],
     );
@@ -845,13 +871,13 @@ class _MealRecommendationSetupPageState
             ),
           ),
           _CuisineButton(
-            label: 'Like',
+            icon: AppIcons.thumbUpRounded,
             selected: liked,
             onTap: () => _setCuisinePreference(cuisine, liked ? null : true),
           ),
           const SizedBox(width: 8),
           _CuisineButton(
-            label: 'Dislike',
+            icon: AppIcons.thumbDownRounded,
             selected: disliked,
             onTap: () =>
                 _setCuisinePreference(cuisine, disliked ? null : false),
@@ -1270,12 +1296,12 @@ class _MetricPill extends StatelessWidget {
 
 class _CuisineButton extends StatelessWidget {
   const _CuisineButton({
-    required this.label,
+    required this.icon,
     required this.selected,
     required this.onTap,
   });
 
-  final String label;
+  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
@@ -1297,13 +1323,7 @@ class _CuisineButton extends StatelessWidget {
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      child: Text(
-        label,
-        style: AppTextStyles.label.copyWith(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
+      child: Icon(icon, size: 18),
     );
   }
 }
