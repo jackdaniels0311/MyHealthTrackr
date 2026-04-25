@@ -337,3 +337,55 @@ class FoodSearchResult(BaseModel):
 
 class FoodLookupResult(FoodSearchResult):
     pass
+
+
+class MealPlanIngredient(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    quantity: float = Field(ge=0, le=100000)
+    unit: str = Field(min_length=1, max_length=50)
+
+
+class MealPlanMeal(BaseModel):
+    meal_type: str = Field(min_length=1, max_length=100)
+    name: str = Field(min_length=1, max_length=255)
+    calories: float = Field(ge=0, le=100000)
+    protein: float = Field(ge=0, le=100000)
+    carbs: float = Field(ge=0, le=100000)
+    fat: float = Field(ge=0, le=100000)
+    fibre: float = Field(ge=0, le=100000)
+    sugar: float = Field(ge=0, le=100000)
+    ingredients: list[MealPlanIngredient] = Field(min_length=1)
+    match_reason: str = Field(min_length=1, max_length=500)
+
+
+class MealPlanTargets(BaseModel):
+    calories: float = Field(ge=0, le=20000)
+    protein: float = Field(ge=0, le=2000)
+    carbs: float = Field(ge=0, le=2000)
+    fat: float = Field(ge=0, le=1000)
+
+
+class MealPlanTotals(BaseModel):
+    calories: float = Field(ge=0, le=20000)
+    protein: float = Field(ge=0, le=2000)
+    carbs: float = Field(ge=0, le=2000)
+    fat: float = Field(ge=0, le=1000)
+    fibre: float = Field(ge=0, le=500)
+    sugar: float = Field(ge=0, le=1000)
+
+
+class MealPlanModelResult(BaseModel):
+    summary: str = Field(min_length=1, max_length=800)
+    meals: list[MealPlanMeal] = Field(min_length=3, max_length=5)
+
+
+class MealPlanOut(BaseModel):
+    generated_at: datetime
+    goal_type: GoalType
+    dietary_preferences: str | None = Field(default=None, max_length=255)
+    allergies: str | None = Field(default=None, max_length=255)
+    targets: MealPlanTargets
+    totals: MealPlanTotals
+    summary: str = Field(min_length=1, max_length=800)
+    estimate_notice: str = Field(min_length=1, max_length=255)
+    meals: list[MealPlanMeal] = Field(min_length=3, max_length=5)

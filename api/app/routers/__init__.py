@@ -4,6 +4,7 @@ from . import (
     foods,
     health_profiles,
     meal_items,
+    meal_plans,
     meal_logs,
     nutrition_targets,
     saved_meals,

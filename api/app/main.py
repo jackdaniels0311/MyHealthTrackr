@@ -9,6 +9,7 @@ from .routers import (
     foods,
     health_profiles,
     meal_items,
+    meal_plans,
     meal_logs,
     nutrition_targets,
     saved_meals,
@@ -541,5 +542,6 @@ app.include_router(nutrition_targets.router)
 app.include_router(food_logs.router)
 app.include_router(meal_logs.router)
 app.include_router(meal_items.router)
+app.include_router(meal_plans.router)
 app.include_router(saved_meals.router)
 app.include_router(weight_entries.router)
