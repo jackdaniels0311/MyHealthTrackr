@@ -114,8 +114,8 @@ class MealPlanData {
   final List<MealPlanMealGroupData> mealGroups;
 
   factory MealPlanData.fromApi(Map<String, dynamic> json) {
-    final mealGroupsJson = json['meal_groups'];
-    if (mealGroupsJson is! List) {
+    final mealGroups = _readMealGroups(json);
+    if (mealGroups.isEmpty) {
       throw const ApiFailure(
         'The server returned invalid meal recommendations.',
       );
@@ -129,12 +129,41 @@ class MealPlanData {
       targets: MealPlanTargets.fromApi(_readMap(json['targets'])),
       summary: json['summary']?.toString().trim() ?? '',
       estimateNotice: json['estimate_notice']?.toString().trim() ?? '',
-      mealGroups: mealGroupsJson
-          .whereType<Map<String, dynamic>>()
-          .map(MealPlanMealGroupData.fromApi)
-          .toList(growable: false),
+      mealGroups: mealGroups,
     );
   }
+}
+
+List<MealPlanMealGroupData> _readMealGroups(Map<String, dynamic> json) {
+  final mealGroupsJson = json['meal_groups'];
+  if (mealGroupsJson is List) {
+    return mealGroupsJson
+        .whereType<Map<String, dynamic>>()
+        .map(MealPlanMealGroupData.fromApi)
+        .where((group) => group.options.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  final legacyMealsJson = json['meals'];
+  if (legacyMealsJson is! List) {
+    return const <MealPlanMealGroupData>[];
+  }
+
+  final groupedMeals = <String, List<MealPlanMealData>>{};
+  for (final mealJson in legacyMealsJson.whereType<Map<String, dynamic>>()) {
+    final meal = MealPlanMealData.fromApi(mealJson);
+    final mealType = meal.mealType.trim().isEmpty
+        ? 'Recommendations'
+        : meal.mealType;
+    groupedMeals.putIfAbsent(mealType, () => <MealPlanMealData>[]).add(meal);
+  }
+
+  return groupedMeals.entries
+      .map(
+        (entry) =>
+            MealPlanMealGroupData(mealType: entry.key, options: entry.value),
+      )
+      .toList(growable: false);
 }
 
 class MealPlanTargets {
