@@ -5,7 +5,7 @@ from ..auth import get_current_user
 from ..db import get_db
 from ..deps import enforce_user_scope, get_profile_by_user_id
 from ..models import User
-from ..schemas import MealPlanOut
+from ..schemas import MealPlanGenerateRequest, MealPlanOut
 from ..services.gemini_meal_plans import (
     GeminiMealPlanConfigError,
     GeminiMealPlanError,
@@ -22,6 +22,7 @@ _meal_plan_service = GeminiMealPlanService()
 @router.post("/users/{user_id}/meal-plans/generate", response_model=MealPlanOut)
 def generate_meal_plan(
     user_id: int,
+    payload: MealPlanGenerateRequest | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -47,6 +48,7 @@ def generate_meal_plan(
         return _meal_plan_service.generate(
             profile=profile,
             nutrition_target=nutrition_target,
+            preferences=payload,
         )
     except GeminiMealPlanConfigError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error

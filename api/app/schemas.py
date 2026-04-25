@@ -376,7 +376,19 @@ class MealPlanTotals(BaseModel):
 
 class MealPlanModelResult(BaseModel):
     summary: str = Field(min_length=1, max_length=800)
-    meals: list[MealPlanMeal] = Field(min_length=3, max_length=5)
+    meals: list[MealPlanMeal] = Field(min_length=1, max_length=6)
+
+
+class MealPlanGenerateRequest(BaseModel):
+    goal_type: GoalType | None = None
+    allergies: str | None = Field(default=None, max_length=500)
+    dietary_preferences: str | None = Field(default=None, max_length=500)
+    diet_plan_type: str | None = Field(default=None, max_length=100)
+    meal_types: list[str] = Field(default_factory=list, max_length=6)
+    diet_target: str | None = Field(default=None, max_length=100)
+    disliked_foods: str | None = Field(default=None, max_length=500)
+    liked_cuisines: str | None = Field(default=None, max_length=500)
+    disliked_cuisines: str | None = Field(default=None, max_length=500)
 
 
 class MealPlanOut(BaseModel):
@@ -388,4 +400,4 @@ class MealPlanOut(BaseModel):
     totals: MealPlanTotals
     summary: str = Field(min_length=1, max_length=800)
     estimate_notice: str = Field(min_length=1, max_length=255)
-    meals: list[MealPlanMeal] = Field(min_length=3, max_length=5)
+    meals: list[MealPlanMeal] = Field(min_length=1, max_length=6)

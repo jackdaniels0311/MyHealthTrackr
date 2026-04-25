@@ -8,7 +8,10 @@ class MealPlanService {
 
   final ApiClient _apiClient;
 
-  Future<MealPlanData> generatePlan({required AuthSession session}) async {
+  Future<MealPlanData> generatePlan({
+    required AuthSession session,
+    MealPlanPreferences preferences = const MealPlanPreferences(),
+  }) async {
     final userId = session.userId;
     if (userId == null || userId <= 0) {
       throw const ApiFailure(
@@ -19,13 +22,67 @@ class MealPlanService {
     final response = await _apiClient.postJson(
       AppConfig.userMealPlanGenerateUri(userId),
       session: session,
-      body: const <String, dynamic>{},
+      body: preferences.toApiPayload(),
       timeout: const Duration(seconds: 60),
     );
     if (response == null) {
-      throw const ApiFailure('The server returned an empty meal plan response.');
+      throw const ApiFailure(
+        'The server returned an empty meal plan response.',
+      );
     }
     return MealPlanData.fromApi(response);
+  }
+}
+
+class MealPlanPreferences {
+  const MealPlanPreferences({
+    this.goalType,
+    this.allergies,
+    this.dietaryPreferences,
+    this.dietPlanType,
+    this.mealTypes = const <String>[],
+    this.dietTarget,
+    this.dislikedFoods,
+    this.likedCuisines,
+    this.dislikedCuisines,
+  });
+
+  final String? goalType;
+  final String? allergies;
+  final String? dietaryPreferences;
+  final String? dietPlanType;
+  final List<String> mealTypes;
+  final String? dietTarget;
+  final String? dislikedFoods;
+  final String? likedCuisines;
+  final String? dislikedCuisines;
+
+  Map<String, dynamic> toApiPayload() {
+    return <String, dynamic>{
+      if (_cleanText(goalType) != null) 'goal_type': _cleanText(goalType),
+      if (_cleanText(allergies) != null) 'allergies': _cleanText(allergies),
+      if (_cleanText(dietaryPreferences) != null)
+        'dietary_preferences': _cleanText(dietaryPreferences),
+      if (_cleanText(dietPlanType) != null)
+        'diet_plan_type': _cleanText(dietPlanType),
+      'meal_types': mealTypes
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toList(growable: false),
+      if (_cleanText(dietTarget) != null) 'diet_target': _cleanText(dietTarget),
+      if (_cleanText(dislikedFoods) != null)
+        'disliked_foods': _cleanText(dislikedFoods),
+      if (_cleanText(likedCuisines) != null)
+        'liked_cuisines': _cleanText(likedCuisines),
+      if (_cleanText(dislikedCuisines) != null)
+        'disliked_cuisines': _cleanText(dislikedCuisines),
+    };
+  }
+
+  static String? _cleanText(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed;
   }
 }
 

@@ -12,6 +12,7 @@ from pydantic import ValidationError
 
 from ..models import UserNutritionTarget, UserProfile
 from ..schemas import (
+    MealPlanGenerateRequest,
     MealPlanModelResult,
     MealPlanOut,
     MealPlanTargets,
@@ -50,6 +51,7 @@ class GeminiMealPlanService:
         *,
         profile: UserProfile,
         nutrition_target: UserNutritionTarget,
+        preferences: MealPlanGenerateRequest | None = None,
     ) -> MealPlanOut:
         payload = {
             "contents": [
@@ -59,6 +61,7 @@ class GeminiMealPlanService:
                             "text": self._build_prompt(
                                 profile=profile,
                                 nutrition_target=nutrition_target,
+                                preferences=preferences,
                             )
                         }
                     ]
@@ -75,9 +78,15 @@ class GeminiMealPlanService:
 
         return MealPlanOut(
             generated_at=datetime.now(timezone.utc),
-            goal_type=nutrition_target.goal_type,
-            dietary_preferences=_blank_to_none(profile.dietary_preferences),
-            allergies=_blank_to_none(profile.allergies),
+            goal_type=_resolved_goal_type(nutrition_target, preferences),
+            dietary_preferences=_resolved_text(
+                profile.dietary_preferences,
+                preferences.dietary_preferences if preferences is not None else None,
+            ),
+            allergies=_resolved_text(
+                profile.allergies,
+                preferences.allergies if preferences is not None else None,
+            ),
             targets=MealPlanTargets(
                 calories=float(nutrition_target.recommended_calories_kcal),
                 protein=float(nutrition_target.recommended_protein_g),
@@ -155,14 +164,34 @@ class GeminiMealPlanService:
         *,
         profile: UserProfile,
         nutrition_target: UserNutritionTarget,
+        preferences: MealPlanGenerateRequest | None,
     ) -> str:
-        dietary_preferences = _blank_to_none(profile.dietary_preferences) or "None"
-        allergies = _blank_to_none(profile.allergies) or "None"
+        dietary_preferences = (
+            _resolved_text(
+                profile.dietary_preferences,
+                preferences.dietary_preferences if preferences is not None else None,
+            )
+            or "None"
+        )
+        allergies = (
+            _resolved_text(
+                profile.allergies,
+                preferences.allergies if preferences is not None else None,
+            )
+            or "None"
+        )
+        goal_type = _resolved_goal_type(nutrition_target, preferences)
+        meal_types = _resolved_meal_types(preferences)
+        diet_plan_type = _preference_text(preferences, "diet_plan_type") or "No specific plan type"
+        diet_target = _preference_text(preferences, "diet_target") or "Match nutrition targets"
+        disliked_foods = _preference_text(preferences, "disliked_foods") or "None"
+        liked_cuisines = _preference_text(preferences, "liked_cuisines") or "No preference"
+        disliked_cuisines = _preference_text(preferences, "disliked_cuisines") or "None"
 
         return f"""
 You are the meal planning model inside MyHealthTrackr.
 
-Generate one personalised meal plan for one day only. Include Breakfast, Lunch, Dinner, and optionally one Snack.
+Generate one personalised meal plan for one day only. Only include these requested meal types: {meal_types}.
 
 User data:
 - Age: {nutrition_target.age_years}
@@ -170,10 +199,15 @@ User data:
 - Weight: {float(nutrition_target.weight_kg):.1f} kg
 - Height: {float(nutrition_target.height_cm):.1f} cm
 - Activity level: {nutrition_target.activity_level}
-- Goal: {nutrition_target.goal_type}
+- Goal: {goal_type}
 - Weekly goal: {float(nutrition_target.weekly_goal_kg):.2f} kg/week
 - Dietary preferences: {dietary_preferences}
 - Allergies: {allergies}
+- Preferred diet plan type: {diet_plan_type}
+- Main diet target: {diet_target}
+- Foods the user dislikes and wants to avoid: {disliked_foods}
+- Cuisines the user likes: {liked_cuisines}
+- Cuisines the user dislikes: {disliked_cuisines}
 
 Daily targets:
 - Calories: {float(nutrition_target.recommended_calories_kcal):.0f} kcal
@@ -184,6 +218,8 @@ Daily targets:
 Rules:
 - Return JSON only.
 - Respect allergies and dietary preferences. Do not include conflicting foods.
+- Avoid disliked foods and disliked cuisines.
+- Prefer liked cuisines where they fit the user's targets.
 - Include exact ingredient quantities and units for every meal.
 - Nutrition values can be approximate, but must be realistic.
 - Do not include lifestyle suggestions, exercise advice, hydration advice, sleep advice, or medical claims.
@@ -209,6 +245,45 @@ def _blank_to_none(value: str | None) -> str | None:
     if not trimmed or trimmed.lower() == "none":
         return None
     return trimmed
+
+
+def _resolved_goal_type(
+    nutrition_target: UserNutritionTarget,
+    preferences: MealPlanGenerateRequest | None,
+) -> str:
+    if preferences is not None and preferences.goal_type is not None:
+        return preferences.goal_type
+    return nutrition_target.goal_type
+
+
+def _resolved_text(stored_value: str | None, override_value: str | None) -> str | None:
+    return _blank_to_none(override_value) or _blank_to_none(stored_value)
+
+
+def _preference_text(
+    preferences: MealPlanGenerateRequest | None,
+    field_name: str,
+) -> str | None:
+    if preferences is None:
+        return None
+    value = getattr(preferences, field_name)
+    return _blank_to_none(value)
+
+
+def _resolved_meal_types(preferences: MealPlanGenerateRequest | None) -> str:
+    if preferences is None:
+        return "Breakfast, Lunch, Dinner"
+    meal_types = _clean_list(preferences.meal_types)
+    return ", ".join(meal_types) if meal_types else "Breakfast, Lunch, Dinner"
+
+
+def _clean_list(values: list[str]) -> list[str]:
+    cleaned: list[str] = []
+    for value in values:
+        trimmed = value.strip()
+        if trimmed and trimmed not in cleaned:
+            cleaned.append(trimmed)
+    return cleaned
 
 
 def _read_http_error_detail(exc: error.HTTPError) -> str:
@@ -290,8 +365,8 @@ def _response_schema() -> dict[str, Any]:
             "meals": {
                 "type": "ARRAY",
                 "items": meal,
-                "minItems": 3,
-                "maxItems": 5,
+                "minItems": 1,
+                "maxItems": 6,
             },
         },
         "required": ["summary", "meals"],

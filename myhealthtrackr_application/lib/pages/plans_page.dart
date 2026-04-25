@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:myhealthtrackr/pages/barcode_scanner_page.dart';
 import 'package:myhealthtrackr/pages/diary_page.dart';
 import 'package:myhealthtrackr/pages/home_page.dart';
+import 'package:myhealthtrackr/pages/meal_recommendation_setup_page.dart';
 import 'package:myhealthtrackr/pages/profile_page.dart';
 import 'package:myhealthtrackr/pages/saved_meal_detail_page.dart';
 import 'package:myhealthtrackr/pages/saved_meal_editor_page.dart';
 import 'package:myhealthtrackr/services/api_client.dart';
 import 'package:myhealthtrackr/services/auth_scope.dart';
 import 'package:myhealthtrackr/services/food_service.dart';
-import 'package:myhealthtrackr/services/meal_plan_service.dart';
 import 'package:myhealthtrackr/services/saved_meals_service.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_icons.dart';
@@ -30,14 +30,10 @@ class _PlansPageState extends State<PlansPage> {
   static const Color _mutedText = AppColours.textSubtle;
 
   final SavedMealsService _savedMealsService = const SavedMealsService();
-  final MealPlanService _mealPlanService = const MealPlanService();
   bool _hasLoadedPlans = false;
   bool _isLoading = true;
-  bool _isGeneratingMealPlan = false;
   String? _errorMessage;
-  String? _mealPlanErrorMessage;
   List<SavedMealData> _meals = const [];
-  MealPlanData? _mealPlan;
 
   @override
   void didChangeDependencies() {
@@ -82,8 +78,6 @@ class _PlansPageState extends State<PlansPage> {
                     children: [
                       _buildTopBar(),
                       const SizedBox(height: 24),
-                      _buildHeroCard(),
-                      const SizedBox(height: 22),
                       _buildMealPlanSection(),
                       const SizedBox(height: 22),
                       Row(
@@ -146,7 +140,7 @@ class _PlansPageState extends State<PlansPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Create and manage reusable meals for faster diary logging.',
+                'Get AI meal recommendations or manage saved meals for faster diary logging.',
                 style: AppTextStyles.bodyMuted.copyWith(
                   color: _mutedText,
                   fontSize: 16,
@@ -176,65 +170,7 @@ class _PlansPageState extends State<PlansPage> {
     );
   }
 
-  Widget _buildHeroCard() {
-    final mealCount = _meals.length;
-    final totalItems = _meals.fold<int>(
-      0,
-      (sum, meal) => sum + meal.items.length,
-    );
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
-      decoration: BoxDecoration(
-        color: AppColours.secondary.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: _panelBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColours.shadowHeavy,
-            blurRadius: 24,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Reusable meal library',
-            style: AppTextStyles.title.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Keep meals here, then review and copy them into your diary whenever you eat them.',
-            style: AppTextStyles.bodyMuted.copyWith(
-              color: AppColours.textMuted,
-              fontSize: 15,
-            ),
-          ),
-          const SizedBox(height: 18),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _StatPill(label: '$mealCount meal${mealCount == 1 ? '' : 's'}'),
-              _StatPill(
-                label: '$totalItems total item${totalItems == 1 ? '' : 's'}',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMealPlanSection() {
-    final plan = _mealPlan;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
@@ -275,7 +211,7 @@ class _PlansPageState extends State<PlansPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'AI meal plan',
+                      'AI meal recommendations',
                       style: AppTextStyles.title.copyWith(
                         fontSize: 23,
                         fontWeight: FontWeight.w800,
@@ -283,7 +219,7 @@ class _PlansPageState extends State<PlansPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Generate a one-day plan from your goals, targets and dietary profile.',
+                      'Want personalised meal recommendations based on your goals, preferences and foods you want to avoid?',
                       style: AppTextStyles.bodyMuted.copyWith(
                         color: AppColours.textMuted,
                         fontSize: 15,
@@ -298,209 +234,14 @@ class _PlansPageState extends State<PlansPage> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: _isGeneratingMealPlan ? null : _generateMealPlan,
+              onPressed: _openMealRecommendationSetup,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColours.primary,
                 foregroundColor: AppColours.onDark,
-                disabledBackgroundColor: AppColours.primary.withValues(
-                  alpha: 0.45,
-                ),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              icon: _isGeneratingMealPlan
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColours.onDark,
-                      ),
-                    )
-                  : const Icon(AppIcons.restaurantMenuRounded, size: 19),
-              label: Text(
-                _isGeneratingMealPlan ? 'Generating...' : 'Generate Plan',
-              ),
-            ),
-          ),
-          if (_mealPlanErrorMessage != null) ...[
-            const SizedBox(height: 14),
-            _buildInlineMessage(
-              icon: AppIcons.warningAmberRounded,
-              message: _mealPlanErrorMessage!,
-            ),
-          ],
-          if (plan != null) ...[
-            const SizedBox(height: 18),
-            Text(
-              plan.summary,
-              style: AppTextStyles.bodyMuted.copyWith(
-                color: AppColours.textMuted,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                _MetricPill(
-                  icon: AppIcons.localFireDepartmentRounded,
-                  label:
-                      '${FoodService.formatCalories(plan.totals.calories)} / ${FoodService.formatCalories(plan.targets.calories)}',
-                ),
-                _MetricPill(
-                  icon: AppIcons.spaRounded,
-                  label:
-                      '${FoodService.formatMetric(plan.totals.protein)} protein',
-                ),
-                _MetricPill(
-                  icon: AppIcons.grainRounded,
-                  label: '${FoodService.formatMetric(plan.totals.carbs)} carbs',
-                ),
-                _MetricPill(
-                  icon: AppIcons.boltRounded,
-                  label: '${FoodService.formatMetric(plan.totals.fat)} fat',
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            for (final meal in plan.meals) ...[
-              _buildGeneratedMealCard(meal),
-              if (meal != plan.meals.last) const SizedBox(height: 12),
-            ],
-            if (plan.estimateNotice.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              _buildInlineMessage(
-                icon: AppIcons.warningAmberRounded,
-                message: plan.estimateNotice,
-              ),
-            ],
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGeneratedMealCard(MealPlanMealData meal) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: AppColours.background.withValues(alpha: 0.42),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _panelBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      meal.mealType,
-                      style: AppTextStyles.label.copyWith(
-                        color: AppColours.primary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      meal.name,
-                      style: AppTextStyles.title.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              _MetricPill(
-                icon: AppIcons.localFireDepartmentRounded,
-                label: FoodService.formatCalories(meal.calories),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _CompactMacro(label: 'P', value: meal.protein),
-              _CompactMacro(label: 'C', value: meal.carbs),
-              _CompactMacro(label: 'F', value: meal.fat),
-              _CompactMacro(label: 'Fibre', value: meal.fibre),
-            ],
-          ),
-          const SizedBox(height: 14),
-          ...meal.ingredients.map(
-            (ingredient) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    AppIcons.checkRounded,
-                    color: AppColours.primary,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '${ingredient.name}: ${ingredient.displayQuantity}',
-                      style: AppTextStyles.bodyMuted.copyWith(
-                        color: AppColours.textMuted,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (meal.matchReason.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              meal.matchReason,
-              style: AppTextStyles.bodyMuted.copyWith(
-                color: _mutedText,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInlineMessage({
-    required IconData icon,
-    required String message,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      decoration: BoxDecoration(
-        color: AppColours.background.withValues(alpha: 0.42),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 19, color: AppColours.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: AppTextStyles.bodyMuted.copyWith(
-                color: AppColours.textMuted,
-                fontSize: 14,
-              ),
+              icon: const Icon(AppIcons.restaurantMenuRounded, size: 19),
+              label: const Text('Get Started'),
             ),
           ),
         ],
@@ -900,37 +641,12 @@ class _PlansPageState extends State<PlansPage> {
     }
   }
 
-  Future<void> _generateMealPlan() async {
-    setState(() {
-      _isGeneratingMealPlan = true;
-      _mealPlanErrorMessage = null;
-    });
-
-    try {
-      final plan = await AuthScope.of(context).withAuthenticatedSession((
-        session,
-      ) {
-        return _mealPlanService.generatePlan(session: session);
-      });
-      if (!mounted) return;
-      setState(() {
-        _mealPlan = plan;
-        _isGeneratingMealPlan = false;
-      });
-    } on ApiFailure catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _mealPlanErrorMessage = error.message;
-        _isGeneratingMealPlan = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _mealPlanErrorMessage =
-            'Unable to generate your meal plan right now. Please try again.';
-        _isGeneratingMealPlan = false;
-      });
-    }
+  Future<void> _openMealRecommendationSetup() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const MealRecommendationSetupPage(),
+      ),
+    );
   }
 
   Future<void> _openCreateMeal() async {
@@ -965,30 +681,6 @@ class _PlansPageState extends State<PlansPage> {
   }
 }
 
-class _StatPill extends StatelessWidget {
-  const _StatPill({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColours.background.withValues(alpha: 0.48),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.label.copyWith(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
 class _MetricPill extends StatelessWidget {
   const _MetricPill({required this.icon, required this.label});
 
@@ -1016,32 +708,6 @@ class _MetricPill extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _CompactMacro extends StatelessWidget {
-  const _CompactMacro({required this.label, required this.value});
-
-  final String label;
-  final double value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: AppColours.secondary.withValues(alpha: 0.62),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        '$label ${FoodService.formatMetric(value)}',
-        style: AppTextStyles.label.copyWith(
-          color: AppColours.textMuted,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
       ),
     );
   }

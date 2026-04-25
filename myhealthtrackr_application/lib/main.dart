@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:myhealthtrackr/pages/create_account_page.dart';
 import 'package:myhealthtrackr/pages/diary_page.dart';
 import 'package:myhealthtrackr/pages/home_page.dart';
+import 'package:myhealthtrackr/pages/meal_recommendation_setup_page.dart';
 import 'package:myhealthtrackr/pages/plans_page.dart';
 import 'package:myhealthtrackr/pages/profile_page.dart';
 import 'package:myhealthtrackr/pages/sign_in_page.dart';
@@ -61,6 +62,8 @@ class _MyAppState extends State<MyApp> {
         HomePage.routeName: (_) => const HomePage(),
         DiaryPage.routeName: (_) => const DiaryPage(),
         PlansPage.routeName: (_) => const PlansPage(),
+        MealRecommendationSetupPage.routeName: (_) =>
+            const MealRecommendationSetupPage(),
         ProfilePage.routeName: (_) => const ProfilePage(),
         BarcodeScannerPage.routeName: (_) => const BarcodeScannerPage(),
       },
