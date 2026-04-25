@@ -16,7 +16,6 @@ from ..schemas import (
     MealPlanModelResult,
     MealPlanOut,
     MealPlanTargets,
-    MealPlanTotals,
 )
 
 _GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta"
@@ -93,10 +92,9 @@ class GeminiMealPlanService:
                 carbs=float(nutrition_target.recommended_carbs_g),
                 fat=float(nutrition_target.recommended_fat_g),
             ),
-            totals=_sum_totals(model_result),
             summary=model_result.summary,
             estimate_notice=_ESTIMATE_NOTICE,
-            meals=model_result.meals,
+            meal_groups=model_result.meal_groups,
         )
 
     def _post_generate_content(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -191,7 +189,9 @@ class GeminiMealPlanService:
         return f"""
 You are the meal planning model inside MyHealthTrackr.
 
-Generate one personalised meal plan for one day only. Only include these requested meal types: {meal_types}.
+Generate grouped meal recommendations, not a single daily meal plan.
+For each requested meal type, return exactly 5 different meal options.
+Only include these requested meal types: {meal_types}.
 
 User data:
 - Age: {nutrition_target.age_years}
@@ -217,25 +217,16 @@ Daily targets:
 
 Rules:
 - Return JSON only.
+- Return meal_groups, where each group has one meal_type and 5 options.
+- Make the 5 options within each meal type distinct in style, cuisine, ingredients, or prep approach.
 - Respect allergies and dietary preferences. Do not include conflicting foods.
 - Avoid disliked foods and disliked cuisines.
 - Prefer liked cuisines where they fit the user's targets.
 - Include exact ingredient quantities and units for every meal.
 - Nutrition values can be approximate, but must be realistic.
 - Do not include lifestyle suggestions, exercise advice, hydration advice, sleep advice, or medical claims.
-- The summary should only explain why the meals fit the user's nutrition target and food preferences.
+- The summary should only explain how the meal options fit the user's nutrition target and food preferences.
 """.strip()
-
-
-def _sum_totals(model_result: MealPlanModelResult) -> MealPlanTotals:
-    return MealPlanTotals(
-        calories=round(sum(meal.calories for meal in model_result.meals), 1),
-        protein=round(sum(meal.protein for meal in model_result.meals), 1),
-        carbs=round(sum(meal.carbs for meal in model_result.meals), 1),
-        fat=round(sum(meal.fat for meal in model_result.meals), 1),
-        fibre=round(sum(meal.fibre for meal in model_result.meals), 1),
-        sugar=round(sum(meal.sugar for meal in model_result.meals), 1),
-    )
 
 
 def _blank_to_none(value: str | None) -> str | None:
@@ -367,17 +358,31 @@ def _response_schema() -> dict[str, Any]:
             "match_reason",
         ],
     }
+    meal_group = {
+        "type": "OBJECT",
+        "properties": {
+            "meal_type": text,
+            "options": {
+                "type": "ARRAY",
+                "items": meal,
+                "minItems": 1,
+                "maxItems": 5,
+            },
+        },
+        "required": ["meal_type", "options"],
+        "propertyOrdering": ["meal_type", "options"],
+    }
     return {
         "type": "OBJECT",
         "properties": {
             "summary": text,
-            "meals": {
+            "meal_groups": {
                 "type": "ARRAY",
-                "items": meal,
+                "items": meal_group,
                 "minItems": 1,
                 "maxItems": 6,
             },
         },
-        "required": ["summary", "meals"],
-        "propertyOrdering": ["summary", "meals"],
+        "required": ["summary", "meal_groups"],
+        "propertyOrdering": ["summary", "meal_groups"],
     }

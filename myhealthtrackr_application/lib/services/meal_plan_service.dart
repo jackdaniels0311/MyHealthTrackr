@@ -99,10 +99,9 @@ class MealPlanData {
     required this.dietaryPreferences,
     required this.allergies,
     required this.targets,
-    required this.totals,
     required this.summary,
     required this.estimateNotice,
-    required this.meals,
+    required this.mealGroups,
   });
 
   final DateTime? generatedAt;
@@ -110,15 +109,16 @@ class MealPlanData {
   final String? dietaryPreferences;
   final String? allergies;
   final MealPlanTargets targets;
-  final MealPlanTotals totals;
   final String summary;
   final String estimateNotice;
-  final List<MealPlanMealData> meals;
+  final List<MealPlanMealGroupData> mealGroups;
 
   factory MealPlanData.fromApi(Map<String, dynamic> json) {
-    final mealsJson = json['meals'];
-    if (mealsJson is! List) {
-      throw const ApiFailure('The server returned an invalid meal plan.');
+    final mealGroupsJson = json['meal_groups'];
+    if (mealGroupsJson is! List) {
+      throw const ApiFailure(
+        'The server returned invalid meal recommendations.',
+      );
     }
 
     return MealPlanData(
@@ -127,12 +127,11 @@ class MealPlanData {
       dietaryPreferences: _nullIfBlank(json['dietary_preferences']?.toString()),
       allergies: _nullIfBlank(json['allergies']?.toString()),
       targets: MealPlanTargets.fromApi(_readMap(json['targets'])),
-      totals: MealPlanTotals.fromApi(_readMap(json['totals'])),
       summary: json['summary']?.toString().trim() ?? '',
       estimateNotice: json['estimate_notice']?.toString().trim() ?? '',
-      meals: mealsJson
+      mealGroups: mealGroupsJson
           .whereType<Map<String, dynamic>>()
-          .map(MealPlanMealData.fromApi)
+          .map(MealPlanMealGroupData.fromApi)
           .toList(growable: false),
     );
   }
@@ -161,31 +160,26 @@ class MealPlanTargets {
   }
 }
 
-class MealPlanTotals {
-  const MealPlanTotals({
-    required this.calories,
-    required this.protein,
-    required this.carbs,
-    required this.fat,
-    required this.fibre,
-    required this.sugar,
-  });
+class MealPlanMealGroupData {
+  const MealPlanMealGroupData({required this.mealType, required this.options});
 
-  final double calories;
-  final double protein;
-  final double carbs;
-  final double fat;
-  final double fibre;
-  final double sugar;
+  final String mealType;
+  final List<MealPlanMealData> options;
 
-  factory MealPlanTotals.fromApi(Map<String, dynamic> json) {
-    return MealPlanTotals(
-      calories: _readDouble(json['calories']),
-      protein: _readDouble(json['protein']),
-      carbs: _readDouble(json['carbs']),
-      fat: _readDouble(json['fat']),
-      fibre: _readDouble(json['fibre']),
-      sugar: _readDouble(json['sugar']),
+  factory MealPlanMealGroupData.fromApi(Map<String, dynamic> json) {
+    final optionsJson = json['options'];
+    if (optionsJson is! List) {
+      throw const ApiFailure(
+        'The server returned an invalid meal recommendation group.',
+      );
+    }
+
+    return MealPlanMealGroupData(
+      mealType: json['meal_type']?.toString().trim() ?? '',
+      options: optionsJson
+          .whereType<Map<String, dynamic>>()
+          .map(MealPlanMealData.fromApi)
+          .toList(growable: false),
     );
   }
 }

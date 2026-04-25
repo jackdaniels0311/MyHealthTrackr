@@ -1204,7 +1204,7 @@ class _MealRecommendationSetupPageState
         ),
         const SizedBox(height: 8),
         Text(
-          'Review the AI-generated meal plan and ingredient quantities.',
+          'Review AI-generated options for each meal type.',
           style: AppTextStyles.bodyMuted.copyWith(
             color: AppColours.textMuted,
             fontSize: 16,
@@ -1218,9 +1218,9 @@ class _MealRecommendationSetupPageState
               children: [
                 _buildSummaryCard(plan),
                 const SizedBox(height: 14),
-                for (final meal in plan.meals) ...[
-                  _buildMealCard(meal),
-                  const SizedBox(height: 14),
+                for (final group in plan.mealGroups) ...[
+                  _buildMealGroupSection(group),
+                  const SizedBox(height: 18),
                 ],
               ],
             ),
@@ -1293,31 +1293,6 @@ class _MealRecommendationSetupPageState
               fontSize: 15,
             ),
           ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _MetricPill(
-                icon: AppIcons.localFireDepartmentRounded,
-                label:
-                    '${FoodService.formatCalories(plan.totals.calories)} / ${FoodService.formatCalories(plan.targets.calories)}',
-              ),
-              _MetricPill(
-                icon: AppIcons.spaRounded,
-                label:
-                    '${FoodService.formatMetric(plan.totals.protein)} protein',
-              ),
-              _MetricPill(
-                icon: AppIcons.grainRounded,
-                label: '${FoodService.formatMetric(plan.totals.carbs)} carbs',
-              ),
-              _MetricPill(
-                icon: AppIcons.boltRounded,
-                label: '${FoodService.formatMetric(plan.totals.fat)} fat',
-              ),
-            ],
-          ),
           const SizedBox(height: 12),
           Text(
             plan.estimateNotice,
@@ -1331,7 +1306,27 @@ class _MealRecommendationSetupPageState
     );
   }
 
-  Widget _buildMealCard(MealPlanMealData meal) {
+  Widget _buildMealGroupSection(MealPlanMealGroupData group) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          group.mealType,
+          style: AppTextStyles.title.copyWith(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 10),
+        for (var index = 0; index < group.options.length; index++) ...[
+          _buildMealCard(group.options[index], index: index + 1),
+          if (index != group.options.length - 1) const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMealCard(MealPlanMealData meal, {required int index}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -1344,7 +1339,7 @@ class _MealRecommendationSetupPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            meal.mealType,
+            'Option $index',
             style: AppTextStyles.label.copyWith(
               color: AppColours.primary,
               fontSize: 13,
@@ -1371,6 +1366,14 @@ class _MealRecommendationSetupPageState
               _MetricPill(
                 icon: AppIcons.spaRounded,
                 label: '${FoodService.formatMetric(meal.protein)} protein',
+              ),
+              _MetricPill(
+                icon: AppIcons.grainRounded,
+                label: '${FoodService.formatMetric(meal.carbs)} carbs',
+              ),
+              _MetricPill(
+                icon: AppIcons.boltRounded,
+                label: '${FoodService.formatMetric(meal.fat)} fat',
               ),
             ],
           ),

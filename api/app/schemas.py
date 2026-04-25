@@ -365,18 +365,14 @@ class MealPlanTargets(BaseModel):
     fat: float = Field(ge=0, le=1000)
 
 
-class MealPlanTotals(BaseModel):
-    calories: float = Field(ge=0, le=20000)
-    protein: float = Field(ge=0, le=2000)
-    carbs: float = Field(ge=0, le=2000)
-    fat: float = Field(ge=0, le=1000)
-    fibre: float = Field(ge=0, le=500)
-    sugar: float = Field(ge=0, le=1000)
+class MealPlanMealGroup(BaseModel):
+    meal_type: str = Field(min_length=1, max_length=100)
+    options: list[MealPlanMeal] = Field(min_length=1, max_length=5)
 
 
 class MealPlanModelResult(BaseModel):
     summary: str = Field(min_length=1, max_length=800)
-    meals: list[MealPlanMeal] = Field(min_length=1, max_length=6)
+    meal_groups: list[MealPlanMealGroup] = Field(min_length=1, max_length=6)
 
 
 class MealPlanGenerateRequest(BaseModel):
@@ -398,7 +394,6 @@ class MealPlanOut(BaseModel):
     dietary_preferences: str | None = Field(default=None, max_length=255)
     allergies: str | None = Field(default=None, max_length=255)
     targets: MealPlanTargets
-    totals: MealPlanTotals
     summary: str = Field(min_length=1, max_length=800)
     estimate_notice: str = Field(min_length=1, max_length=255)
-    meals: list[MealPlanMeal] = Field(min_length=1, max_length=6)
+    meal_groups: list[MealPlanMealGroup] = Field(min_length=1, max_length=6)
