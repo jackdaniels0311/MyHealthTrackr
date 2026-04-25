@@ -35,8 +35,15 @@ class ApiClient {
     Uri uri, {
     AuthSession? session,
     Map<String, dynamic>? body,
+    Duration timeout = const Duration(seconds: 15),
   }) async {
-    return _sendJsonRequest(uri, method: 'POST', session: session, body: body);
+    return _sendJsonRequest(
+      uri,
+      method: 'POST',
+      session: session,
+      body: body,
+      timeout: timeout,
+    );
   }
 
   Future<Map<String, dynamic>?> putJson(
@@ -56,6 +63,7 @@ class ApiClient {
     required String method,
     AuthSession? session,
     Map<String, dynamic>? body,
+    Duration timeout = const Duration(seconds: 15),
   }) async {
     final httpClient = (_clientFactory ?? HttpClient.new).call();
 
@@ -82,13 +90,11 @@ class ApiClient {
         request.write(jsonEncode(body));
       }
 
-      final response = await request.close().timeout(
-        const Duration(seconds: 15),
-      );
+      final response = await request.close().timeout(timeout);
       final responseBody = await response
           .transform(utf8.decoder)
           .join()
-          .timeout(const Duration(seconds: 15));
+          .timeout(timeout);
       final responseJson = _decodeObject(responseBody);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {

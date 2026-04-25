@@ -20,6 +20,7 @@ class MealPlanService {
       AppConfig.userMealPlanGenerateUri(userId),
       session: session,
       body: const <String, dynamic>{},
+      timeout: const Duration(seconds: 60),
     );
     if (response == null) {
       throw const ApiFailure('The server returned an empty meal plan response.');

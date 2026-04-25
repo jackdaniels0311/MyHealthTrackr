@@ -38,7 +38,7 @@ class GeminiMealPlanConfig:
     api_key: str | None = os.getenv("GEMINI_API_KEY")
     model: str = os.getenv("GEMINI_MODEL", _DEFAULT_MODEL)
     api_base_url: str = os.getenv("GEMINI_API_BASE_URL", _GEMINI_API_BASE)
-    timeout_seconds: float = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "25"))
+    timeout_seconds: float = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "45"))
 
 
 class GeminiMealPlanService:
