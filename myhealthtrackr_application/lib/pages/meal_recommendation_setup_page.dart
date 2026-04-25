@@ -26,16 +26,20 @@ class _MealRecommendationSetupPageState
     extends State<MealRecommendationSetupPage> {
   static const List<_SetupStep> _steps = <_SetupStep>[
     _SetupStep(
-      title: 'Confirm your profile',
-      subtitle: 'Review the goal and food restrictions used for this plan.',
+      title: 'Goal and targets',
+      subtitle: 'Choose the goal and main diet targets for this plan.',
+    ),
+    _SetupStep(
+      title: 'Allergies',
+      subtitle: 'Confirm foods the assistant must avoid.',
+    ),
+    _SetupStep(
+      title: 'Dietary preferences',
+      subtitle: 'Confirm how you prefer to eat and foods you dislike.',
     ),
     _SetupStep(
       title: 'Choose a plan style',
       subtitle: 'Select the diet approach and meals you want recommended.',
-    ),
-    _SetupStep(
-      title: 'Refine the target',
-      subtitle: 'Tell the assistant what matters most for this plan.',
     ),
     _SetupStep(
       title: 'Cuisine preferences',
@@ -46,11 +50,34 @@ class _MealRecommendationSetupPageState
   static const List<String> _dietPlanTypes = <String>[
     'Balanced',
     'High protein',
+    'Keto',
     'Low carb',
+    'Whole-foods focused',
     'Mediterranean',
-    'Plant focused',
-    'Budget friendly',
-    'Quick meals',
+    'Pescatarian',
+    'Vegetarian',
+    'Vegan',
+  ];
+
+  static const List<String> _allergyOptions = <String>[
+    'None',
+    'Peanuts',
+    'Dairy',
+    'Eggs',
+    'Wheat',
+    'Gluten',
+    'Fish',
+    'Shellfish',
+  ];
+
+  static const List<String> _dietaryPreferenceOptions = <String>[
+    'None',
+    'Vegetarian',
+    'Vegan',
+    'Pescatarian',
+    'Halal',
+    'Gluten-free',
+    'Dairy-free',
   ];
 
   static const List<String> _mealTypeOptions = <String>[
@@ -69,6 +96,19 @@ class _MealRecommendationSetupPageState
     'Support training',
   ];
 
+  static const List<String> _cuisineOptions = <String>[
+    'British',
+    'Mediterranean',
+    'Italian',
+    'Indian',
+    'Chinese',
+    'Japanese',
+    'Mexican',
+    'Thai',
+    'Middle Eastern',
+    'Caribbean',
+  ];
+
   final ProfileService _profileService = const ProfileService();
   final GoalService _goalService = const GoalService();
   final MealPlanService _mealPlanService = const MealPlanService();
@@ -78,11 +118,6 @@ class _MealRecommendationSetupPageState
       TextEditingController();
   final TextEditingController _dislikedFoodsController =
       TextEditingController();
-  final TextEditingController _likedCuisinesController =
-      TextEditingController();
-  final TextEditingController _dislikedCuisinesController =
-      TextEditingController();
-
   int _currentStep = 0;
   bool _hasLoaded = false;
   bool _isLoading = true;
@@ -90,8 +125,10 @@ class _MealRecommendationSetupPageState
   String? _loadError;
   String? _selectedGoalType;
   String? _selectedDietPlanType = _dietPlanTypes.first;
-  String? _selectedDietTarget = _dietTargets.first;
+  final Set<String> _selectedDietTargets = {_dietTargets.first};
   final Set<String> _selectedMealTypes = {'Breakfast', 'Lunch', 'Dinner'};
+  final Set<String> _likedCuisines = <String>{};
+  final Set<String> _dislikedCuisines = <String>{};
   MealPlanData? _mealPlan;
 
   @override
@@ -107,8 +144,6 @@ class _MealRecommendationSetupPageState
     _allergiesController.dispose();
     _dietaryPreferencesController.dispose();
     _dislikedFoodsController.dispose();
-    _likedCuisinesController.dispose();
-    _dislikedCuisinesController.dispose();
     super.dispose();
   }
 
@@ -201,11 +236,21 @@ class _MealRecommendationSetupPageState
         if (_selectedGoalType == null) {
           return 'Please choose the goal to plan around.';
         }
+        if (_selectedDietTargets.isEmpty) {
+          return 'Please select at least one main diet target.';
+        }
+        return null;
+      case 1:
         if (_allergiesController.text.trim().isEmpty) {
           return 'Please confirm allergies or enter None.';
         }
         return null;
-      case 1:
+      case 2:
+        if (_dietaryPreferencesController.text.trim().isEmpty) {
+          return 'Please confirm dietary preferences or enter None.';
+        }
+        return null;
+      case 3:
         if (_selectedDietPlanType == null) {
           return 'Please choose a diet plan type.';
         }
@@ -213,10 +258,6 @@ class _MealRecommendationSetupPageState
           return 'Please select at least one meal type.';
         }
         return null;
-      case 2:
-        return _selectedDietTarget == null
-            ? 'Please choose your main diet target.'
-            : null;
       default:
         return null;
     }
@@ -234,10 +275,10 @@ class _MealRecommendationSetupPageState
       dietaryPreferences: _dietaryPreferencesController.text,
       dietPlanType: _selectedDietPlanType,
       mealTypes: _selectedMealTypes.toList(growable: false),
-      dietTarget: _selectedDietTarget,
+      dietTargets: _selectedDietTargets.toList(growable: false),
       dislikedFoods: _dislikedFoodsController.text,
-      likedCuisines: _likedCuisinesController.text,
-      dislikedCuisines: _dislikedCuisinesController.text,
+      likedCuisines: _likedCuisines.join(', '),
+      dislikedCuisines: _dislikedCuisines.join(', '),
     );
 
     try {
@@ -437,19 +478,21 @@ class _MealRecommendationSetupPageState
   Widget _buildStepContent() {
     switch (_currentStep) {
       case 0:
-        return _buildProfileStep();
+        return _buildGoalStep();
       case 1:
-        return _buildPlanStyleStep();
+        return _buildAllergiesStep();
       case 2:
-        return _buildTargetStep();
+        return _buildDietaryPreferencesStep();
       case 3:
+        return _buildPlanStyleStep();
+      case 4:
         return _buildCuisineStep();
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildProfileStep() {
+  Widget _buildGoalStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -460,19 +503,44 @@ class _MealRecommendationSetupPageState
           items: UserGoal.goalTypes,
           onChanged: (value) => setState(() => _selectedGoalType = value),
         ),
-        const SizedBox(height: 18),
-        _buildTextField(
-          controller: _allergiesController,
-          label: 'Allergies',
-          hintText: 'None, peanuts, dairy...',
-          helperText: 'These foods will be avoided in the AI prompt.',
+        const SizedBox(height: 24),
+        _buildMultiSelectChips(
+          label: 'Main targets',
+          options: _dietTargets,
+          selectedValues: _selectedDietTargets,
         ),
-        const SizedBox(height: 18),
-        _buildTextField(
+      ],
+    );
+  }
+
+  Widget _buildAllergiesStep() {
+    return _buildSelectableTextStep(
+      controller: _allergiesController,
+      label: 'Allergies',
+      hintText: 'Enter allergies separated by commas',
+      helperText: 'Select None if you do not have any allergies.',
+      quickOptions: _allergyOptions,
+    );
+  }
+
+  Widget _buildDietaryPreferencesStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSelectableTextStep(
           controller: _dietaryPreferencesController,
           label: 'Dietary preferences',
-          hintText: 'Vegetarian, halal, gluten-free...',
-          helperText: 'Use commas for more than one preference.',
+          hintText: 'Enter dietary preferences separated by commas',
+          helperText: 'Select None if you do not have any dietary preferences.',
+          quickOptions: _dietaryPreferenceOptions,
+        ),
+        const SizedBox(height: 22),
+        _buildTextField(
+          controller: _dislikedFoodsController,
+          label: 'Foods to avoid',
+          hintText: 'Mushrooms, tuna, eggs...',
+          helperText: 'Add foods you dislike, separated by commas.',
+          required: false,
         ),
       ],
     );
@@ -535,48 +603,19 @@ class _MealRecommendationSetupPageState
     );
   }
 
-  Widget _buildTargetStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildDropdown<String>(
-          label: 'Main target',
-          value: _selectedDietTarget,
-          hintText: 'Choose target',
-          items: _dietTargets,
-          onChanged: (value) => setState(() => _selectedDietTarget = value),
-        ),
-        const SizedBox(height: 18),
-        _buildTextField(
-          controller: _dislikedFoodsController,
-          label: 'Foods to avoid',
-          hintText: 'Mushrooms, tuna, eggs...',
-          helperText: 'Add foods you dislike, separated by commas.',
-          required: false,
-        ),
-      ],
-    );
-  }
-
   Widget _buildCuisineStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildTextField(
-          controller: _likedCuisinesController,
-          label: 'Cuisines you like',
-          hintText: 'Italian, Indian, Mediterranean...',
-          helperText: 'Optional, but helps shape the recommendations.',
-          required: false,
+        Text(
+          'Mark cuisines as liked or disliked.',
+          style: AppTextStyles.bodyMuted.copyWith(
+            color: AppColours.textMuted,
+            fontSize: 15,
+          ),
         ),
-        const SizedBox(height: 18),
-        _buildTextField(
-          controller: _dislikedCuisinesController,
-          label: 'Cuisines to avoid',
-          hintText: 'Thai, Mexican...',
-          helperText: 'Optional cuisines the assistant should avoid.',
-          required: false,
-        ),
+        const SizedBox(height: 14),
+        ..._cuisineOptions.map(_buildCuisinePreferenceRow),
       ],
     );
   }
@@ -667,6 +706,213 @@ class _MealRecommendationSetupPageState
         ),
       ],
     );
+  }
+
+  Widget _buildSelectableTextStep({
+    required TextEditingController controller,
+    required String label,
+    required String hintText,
+    required String helperText,
+    required List<String> quickOptions,
+  }) {
+    final selectedValues = _splitCommaSeparated(controller.text);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Quick options:',
+          style: AppTextStyles.label.copyWith(
+            color: AppColours.onDark,
+            fontSize: 15,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: quickOptions
+              .map((option) {
+                final isSelected = selectedValues.contains(option);
+                return FilterChip(
+                  label: Text(option),
+                  selected: isSelected,
+                  onSelected: (_) =>
+                      _toggleCommaSeparatedValue(controller, option),
+                  labelStyle: AppTextStyles.body.copyWith(
+                    color: AppColours.onDark,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  backgroundColor: AppColours.inputFill,
+                  selectedColor: AppColours.primary.withValues(alpha: 0.28),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppColours.primary
+                          : AppColours.dividerLightMuted,
+                    ),
+                  ),
+                );
+              })
+              .toList(growable: false),
+        ),
+        const SizedBox(height: 22),
+        _buildTextField(
+          controller: controller,
+          label: label,
+          hintText: hintText,
+          helperText: helperText,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMultiSelectChips({
+    required String label,
+    required List<String> options,
+    required Set<String> selectedValues,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.label.copyWith(
+            color: AppColours.onDark,
+            fontSize: 15,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: options
+              .map((option) {
+                final selected = selectedValues.contains(option);
+                return FilterChip(
+                  selected: selected,
+                  label: Text(option),
+                  onSelected: (value) {
+                    setState(() {
+                      if (value) {
+                        selectedValues.add(option);
+                      } else {
+                        selectedValues.remove(option);
+                      }
+                    });
+                  },
+                  backgroundColor: AppColours.inputFill,
+                  selectedColor: AppColours.primary.withValues(alpha: 0.28),
+                  checkmarkColor: AppColours.primary,
+                  labelStyle: AppTextStyles.label.copyWith(
+                    color: selected ? AppColours.onDark : AppColours.textMuted,
+                  ),
+                  side: BorderSide(
+                    color: selected
+                        ? AppColours.primary.withValues(alpha: 0.45)
+                        : AppColours.transparent,
+                  ),
+                );
+              })
+              .toList(growable: false),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCuisinePreferenceRow(String cuisine) {
+    final liked = _likedCuisines.contains(cuisine);
+    final disliked = _dislikedCuisines.contains(cuisine);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      decoration: BoxDecoration(
+        color: AppColours.inputFill,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColours.dividerLightMuted),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              cuisine,
+              style: AppTextStyles.body.copyWith(
+                color: AppColours.onDark,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          _CuisineButton(
+            label: 'Like',
+            selected: liked,
+            onTap: () => _setCuisinePreference(cuisine, liked ? null : true),
+          ),
+          const SizedBox(width: 8),
+          _CuisineButton(
+            label: 'Dislike',
+            selected: disliked,
+            onTap: () =>
+                _setCuisinePreference(cuisine, disliked ? null : false),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _setCuisinePreference(String cuisine, bool? liked) {
+    setState(() {
+      _likedCuisines.remove(cuisine);
+      _dislikedCuisines.remove(cuisine);
+      if (liked == true) {
+        _likedCuisines.add(cuisine);
+      } else if (liked == false) {
+        _dislikedCuisines.add(cuisine);
+      }
+    });
+  }
+
+  void _toggleCommaSeparatedValue(
+    TextEditingController controller,
+    String value,
+  ) {
+    final selections = _splitCommaSeparated(controller.text).toList();
+    if (value == 'None') {
+      if (selections.contains('None') && selections.length == 1) {
+        controller.text = '';
+      } else {
+        controller.text = 'None';
+      }
+      setState(() {});
+      return;
+    }
+
+    selections.remove('None');
+    if (selections.contains(value)) {
+      selections.remove(value);
+    } else {
+      selections.add(value);
+    }
+
+    controller.text = selections.join(', ');
+    setState(() {});
+  }
+
+  List<String> _splitCommaSeparated(String value) {
+    final entries = value
+        .split(',')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    final uniqueEntries = <String>[];
+    for (final entry in entries) {
+      if (!uniqueEntries.contains(entry)) {
+        uniqueEntries.add(entry);
+      }
+    }
+    return uniqueEntries;
   }
 
   InputDecoration _inputDecoration({required String hintText}) {
@@ -1017,6 +1263,46 @@ class _MetricPill extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CuisineButton extends StatelessWidget {
+  const _CuisineButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(74, 38),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        foregroundColor: selected ? AppColours.onDark : AppColours.textMuted,
+        backgroundColor: selected
+            ? AppColours.primary.withValues(alpha: 0.24)
+            : AppColours.transparent,
+        side: BorderSide(
+          color: selected
+              ? AppColours.primary.withValues(alpha: 0.56)
+              : AppColours.dividerLightMuted,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.label.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }

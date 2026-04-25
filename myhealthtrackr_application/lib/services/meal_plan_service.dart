@@ -42,6 +42,7 @@ class MealPlanPreferences {
     this.dietPlanType,
     this.mealTypes = const <String>[],
     this.dietTarget,
+    this.dietTargets = const <String>[],
     this.dislikedFoods,
     this.likedCuisines,
     this.dislikedCuisines,
@@ -53,6 +54,7 @@ class MealPlanPreferences {
   final String? dietPlanType;
   final List<String> mealTypes;
   final String? dietTarget;
+  final List<String> dietTargets;
   final String? dislikedFoods;
   final String? likedCuisines;
   final String? dislikedCuisines;
@@ -70,6 +72,10 @@ class MealPlanPreferences {
           .where((value) => value.isNotEmpty)
           .toList(growable: false),
       if (_cleanText(dietTarget) != null) 'diet_target': _cleanText(dietTarget),
+      'diet_targets': dietTargets
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toList(growable: false),
       if (_cleanText(dislikedFoods) != null)
         'disliked_foods': _cleanText(dislikedFoods),
       if (_cleanText(likedCuisines) != null)

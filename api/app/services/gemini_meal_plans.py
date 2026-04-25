@@ -183,7 +183,7 @@ class GeminiMealPlanService:
         goal_type = _resolved_goal_type(nutrition_target, preferences)
         meal_types = _resolved_meal_types(preferences)
         diet_plan_type = _preference_text(preferences, "diet_plan_type") or "No specific plan type"
-        diet_target = _preference_text(preferences, "diet_target") or "Match nutrition targets"
+        diet_target = _resolved_diet_targets(preferences)
         disliked_foods = _preference_text(preferences, "disliked_foods") or "None"
         liked_cuisines = _preference_text(preferences, "liked_cuisines") or "No preference"
         disliked_cuisines = _preference_text(preferences, "disliked_cuisines") or "None"
@@ -275,6 +275,15 @@ def _resolved_meal_types(preferences: MealPlanGenerateRequest | None) -> str:
         return "Breakfast, Lunch, Dinner"
     meal_types = _clean_list(preferences.meal_types)
     return ", ".join(meal_types) if meal_types else "Breakfast, Lunch, Dinner"
+
+
+def _resolved_diet_targets(preferences: MealPlanGenerateRequest | None) -> str:
+    if preferences is None:
+        return "Match nutrition targets"
+    diet_targets = _clean_list(preferences.diet_targets)
+    if diet_targets:
+        return ", ".join(diet_targets)
+    return _preference_text(preferences, "diet_target") or "Match nutrition targets"
 
 
 def _clean_list(values: list[str]) -> list[str]:

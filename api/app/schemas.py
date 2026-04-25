@@ -386,6 +386,7 @@ class MealPlanGenerateRequest(BaseModel):
     diet_plan_type: str | None = Field(default=None, max_length=100)
     meal_types: list[str] = Field(default_factory=list, max_length=6)
     diet_target: str | None = Field(default=None, max_length=100)
+    diet_targets: list[str] = Field(default_factory=list, max_length=8)
     disliked_foods: str | None = Field(default=None, max_length=500)
     liked_cuisines: str | None = Field(default=None, max_length=500)
     disliked_cuisines: str | None = Field(default=None, max_length=500)
