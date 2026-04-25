@@ -69,7 +69,6 @@ class GeminiMealPlanService:
             "generationConfig": {
                 "temperature": 0.55,
                 "responseMimeType": "application/json",
-                "responseSchema": _response_schema(),
             },
         }
         response_json = self._post_generate_content(payload)
@@ -217,6 +216,11 @@ Daily targets:
 
 Rules:
 - Return JSON only.
+- Do not use markdown, code fences, comments, or extra text outside the JSON object.
+- Use this exact top-level shape: {{"summary": string, "meal_groups": array}}.
+- Each meal group must use this shape: {{"meal_type": string, "options": array}}.
+- Each meal option must use this shape: {{"meal_type": string, "name": string, "calories": number, "protein": number, "carbs": number, "fat": number, "fibre": number, "sugar": number, "ingredients": array, "match_reason": string}}.
+- Each ingredient must use this shape: {{"name": string, "quantity": number, "unit": string}}.
 - Return meal_groups, where each group has one meal_type and 5 options.
 - Make the 5 options within each meal type distinct in style, cuisine, ingredients, or prep approach.
 - Respect allergies and dietary preferences. Do not include conflicting foods.
@@ -300,89 +304,3 @@ def _read_http_error_detail(exc: error.HTTPError) -> str:
             if isinstance(message, str) and message.strip():
                 return message.strip()
     return f"Gemini returned an HTTP {exc.code} response."
-
-
-def _response_schema() -> dict[str, Any]:
-    number = {"type": "NUMBER"}
-    text = {"type": "STRING"}
-    ingredient = {
-        "type": "OBJECT",
-        "properties": {
-            "name": text,
-            "quantity": number,
-            "unit": text,
-        },
-        "required": ["name", "quantity", "unit"],
-        "propertyOrdering": ["name", "quantity", "unit"],
-    }
-    meal = {
-        "type": "OBJECT",
-        "properties": {
-            "meal_type": text,
-            "name": text,
-            "calories": number,
-            "protein": number,
-            "carbs": number,
-            "fat": number,
-            "fibre": number,
-            "sugar": number,
-            "ingredients": {
-                "type": "ARRAY",
-                "items": ingredient,
-                "minItems": 1,
-            },
-            "match_reason": text,
-        },
-        "required": [
-            "meal_type",
-            "name",
-            "calories",
-            "protein",
-            "carbs",
-            "fat",
-            "fibre",
-            "sugar",
-            "ingredients",
-            "match_reason",
-        ],
-        "propertyOrdering": [
-            "meal_type",
-            "name",
-            "calories",
-            "protein",
-            "carbs",
-            "fat",
-            "fibre",
-            "sugar",
-            "ingredients",
-            "match_reason",
-        ],
-    }
-    meal_group = {
-        "type": "OBJECT",
-        "properties": {
-            "meal_type": text,
-            "options": {
-                "type": "ARRAY",
-                "items": meal,
-                "minItems": 1,
-                "maxItems": 5,
-            },
-        },
-        "required": ["meal_type", "options"],
-        "propertyOrdering": ["meal_type", "options"],
-    }
-    return {
-        "type": "OBJECT",
-        "properties": {
-            "summary": text,
-            "meal_groups": {
-                "type": "ARRAY",
-                "items": meal_group,
-                "minItems": 1,
-                "maxItems": 6,
-            },
-        },
-        "required": ["summary", "meal_groups"],
-        "propertyOrdering": ["summary", "meal_groups"],
-    }
