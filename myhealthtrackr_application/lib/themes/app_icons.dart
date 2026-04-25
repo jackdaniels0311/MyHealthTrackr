@@ -12,6 +12,7 @@ final class AppIcons {
     fontFamily: 'MaterialSymbolsOutlined',
   );
   static const IconData boltRounded = Icons.bolt_rounded;
+  static const IconData bookmarkAddRounded = Icons.bookmark_add_rounded;
   static const IconData cakeOutlined = Icons.cake_outlined;
   static const IconData cakeRounded = Icons.cake_rounded;
   static const IconData calendarMonthOutlined = Icons.calendar_month_outlined;

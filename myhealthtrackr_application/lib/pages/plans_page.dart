@@ -642,11 +642,13 @@ class _PlansPageState extends State<PlansPage> {
   }
 
   Future<void> _openMealRecommendationSetup() async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
         builder: (_) => const MealRecommendationSetupPage(),
       ),
     );
+    if (!mounted) return;
+    await _loadPlans();
   }
 
   Future<void> _openCreateMeal() async {

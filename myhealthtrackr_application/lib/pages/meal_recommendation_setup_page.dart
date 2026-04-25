@@ -7,6 +7,7 @@ import 'package:myhealthtrackr/services/food_service.dart';
 import 'package:myhealthtrackr/services/goal_service.dart';
 import 'package:myhealthtrackr/services/meal_plan_service.dart';
 import 'package:myhealthtrackr/services/profile_service.dart';
+import 'package:myhealthtrackr/services/saved_meals_service.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_icons.dart';
 import 'package:myhealthtrackr/themes/app_text_styles.dart';
@@ -183,6 +184,7 @@ class _MealRecommendationSetupPageState
   final ProfileService _profileService = const ProfileService();
   final GoalService _goalService = const GoalService();
   final MealPlanService _mealPlanService = const MealPlanService();
+  final SavedMealsService _savedMealsService = const SavedMealsService();
 
   final TextEditingController _allergiesController = TextEditingController();
   final TextEditingController _dietaryPreferencesController =
@@ -200,7 +202,10 @@ class _MealRecommendationSetupPageState
   final Set<String> _selectedMealTypes = {'Breakfast', 'Lunch', 'Dinner'};
   final Set<String> _likedCuisines = <String>{};
   final Set<String> _dislikedCuisines = <String>{};
+  final Set<String> _savedMealKeys = <String>{};
+  final Set<String> _savingMealKeys = <String>{};
   MealPlanData? _mealPlan;
+  bool _hasSavedMeal = false;
 
   @override
   void didChangeDependencies() {
@@ -278,7 +283,7 @@ class _MealRecommendationSetupPageState
       return;
     }
     if (_currentStep == 0) {
-      Navigator.pop(context);
+      Navigator.pop(context, _hasSavedMeal);
       return;
     }
     setState(() => _currentStep -= 1);
@@ -340,6 +345,8 @@ class _MealRecommendationSetupPageState
     setState(() {
       _isGenerating = true;
       _mealPlan = null;
+      _savedMealKeys.clear();
+      _savingMealKeys.clear();
     });
 
     final preferences = MealPlanPreferences(
@@ -379,6 +386,62 @@ class _MealRecommendationSetupPageState
         context,
         'Unable to generate your meal recommendations right now.',
       );
+    }
+  }
+
+  Future<void> _saveMealRecommendation(
+    MealPlanMealData meal, {
+    required String cardKey,
+  }) async {
+    if (_savedMealKeys.contains(cardKey) || _savingMealKeys.contains(cardKey)) {
+      return;
+    }
+
+    setState(() => _savingMealKeys.add(cardKey));
+
+    try {
+      final savedMeal = await AuthScope.of(context).withAuthenticatedSession((
+        session,
+      ) {
+        return _savedMealsService.createMeal(
+          session: session,
+          name: meal.name,
+          items: [
+            SavedMealItemData(
+              name: meal.name,
+              servingSize: null,
+              quantity: 1,
+              calories: meal.calories,
+              protein: meal.protein,
+              carbs: meal.carbs,
+              fat: meal.fat,
+              fibre: meal.fibre,
+              sugar: meal.sugar,
+            ),
+          ],
+        );
+      });
+
+      if (!mounted) return;
+      setState(() {
+        _savingMealKeys.remove(cardKey);
+        _savedMealKeys.add(cardKey);
+        _hasSavedMeal = true;
+      });
+      AppSnack.success(context, '${savedMeal.name} has been saved.');
+    } on AuthFailure catch (error) {
+      if (mounted) {
+        setState(() => _savingMealKeys.remove(cardKey));
+      }
+      await _handleUnauthorizedSession(message: error.message);
+    } on ApiFailure catch (error) {
+      if (!mounted) return;
+      setState(() => _savingMealKeys.remove(cardKey));
+      AppSnack.error(context, error.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _savingMealKeys.remove(cardKey));
+      AppSnack.error(context, 'Unable to save this meal right now.');
     }
   }
 
@@ -1427,7 +1490,11 @@ class _MealRecommendationSetupPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (var index = 0; index < group.options.length; index++) ...[
-            _buildMealCard(group.options[index], index: index + 1),
+            _buildMealCard(
+              group.options[index],
+              groupMealType: group.mealType,
+              index: index + 1,
+            ),
             if (index != group.options.length - 1) const SizedBox(height: 12),
           ],
           const SizedBox(height: 4),
@@ -1460,7 +1527,19 @@ class _MealRecommendationSetupPageState
     );
   }
 
-  Widget _buildMealCard(MealPlanMealData meal, {required int index}) {
+  Widget _buildMealCard(
+    MealPlanMealData meal, {
+    required String groupMealType,
+    required int index,
+  }) {
+    final cardKey = _mealRecommendationKey(
+      meal,
+      groupMealType: groupMealType,
+      index: index,
+    );
+    final isSaving = _savingMealKeys.contains(cardKey);
+    final isSaved = _savedMealKeys.contains(cardKey);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -1546,9 +1625,74 @@ class _MealRecommendationSetupPageState
               ),
             ),
           ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: isSaving || isSaved
+                  ? null
+                  : () => _saveMealRecommendation(meal, cardKey: cardKey),
+              icon: isSaving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: AppColours.onDark,
+                      ),
+                    )
+                  : Icon(
+                      isSaved
+                          ? AppIcons.checkRounded
+                          : AppIcons.bookmarkAddRounded,
+                      size: 20,
+                    ),
+              label: Text(
+                isSaved
+                    ? 'Saved'
+                    : isSaving
+                    ? 'Saving'
+                    : 'Save meal',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isSaved
+                    ? AppColours.secondary
+                    : AppColours.primary,
+                foregroundColor: AppColours.onDark,
+                disabledBackgroundColor: isSaved
+                    ? AppColours.secondary
+                    : AppColours.primary.withValues(alpha: 0.55),
+                disabledForegroundColor: isSaved
+                    ? AppColours.textMuted
+                    : AppColours.onDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                textStyle: AppTextStyles.button.copyWith(fontSize: 15),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String _mealRecommendationKey(
+    MealPlanMealData meal, {
+    required String groupMealType,
+    required int index,
+  }) {
+    return [
+      groupMealType.trim().toLowerCase(),
+      meal.mealType.trim().toLowerCase(),
+      index.toString(),
+      meal.name.trim().toLowerCase(),
+      meal.calories.toStringAsFixed(2),
+      meal.protein.toStringAsFixed(2),
+      meal.carbs.toStringAsFixed(2),
+      meal.fat.toStringAsFixed(2),
+    ].join('|');
   }
 }
 
