@@ -1262,33 +1262,40 @@ class _MealRecommendationSetupPageState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 48,
-          height: 48,
-          child: OutlinedButton(
-            onPressed: _goBack,
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.zero,
-              foregroundColor: AppColours.onDark,
-              side: BorderSide(color: AppColours.borderLight),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 48,
+              height: 48,
+              child: OutlinedButton(
+                onPressed: _goBack,
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  foregroundColor: AppColours.onDark,
+                  side: BorderSide(color: AppColours.borderLight),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Icon(AppIcons.arrowBackRounded, size: 22),
               ),
             ),
-            child: const Icon(AppIcons.arrowBackRounded, size: 22),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Your recommendations',
-          style: AppTextStyles.headline.copyWith(
-            fontSize: 34,
-            fontWeight: FontWeight.w800,
-          ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'Your Recommended meals',
+                style: AppTextStyles.headline.copyWith(
+                  fontSize: 34,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Text(
-          'Pick a meal type to compare your options.',
+          'View personalised meals for your selected meal types.',
           style: AppTextStyles.bodyMuted.copyWith(
             color: AppColours.textMuted,
             fontSize: 16,
