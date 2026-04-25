@@ -43,24 +43,78 @@ class _MealRecommendationSetupPageState
     ),
     _SetupStep(
       title: 'Choose a plan style',
-      subtitle: 'Select the diet approach and meals you want recommended.',
+      subtitle: 'Select the diet approach you want the assistant to follow.',
     ),
     _SetupStep(
       title: 'Cuisine preferences',
       subtitle: 'Add cuisines you enjoy and ones you would rather avoid.',
     ),
+    _SetupStep(
+      title: 'Meal types',
+      subtitle: 'Choose which meals you want recommended.',
+    ),
   ];
 
-  static const List<String> _dietPlanTypes = <String>[
-    'Balanced',
-    'High protein',
-    'Keto',
-    'Low carb',
-    'Whole-foods focused',
-    'Mediterranean',
-    'Pescatarian',
-    'Vegetarian',
-    'Vegan',
+  static const List<_DietPlanOption> _dietPlanTypes = <_DietPlanOption>[
+    _DietPlanOption(
+      name: 'Balanced',
+      description:
+          'A flexible mix of protein, carbs and fats for everyday eating.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80',
+    ),
+    _DietPlanOption(
+      name: 'High protein',
+      description:
+          'Protein-led meals to support fullness and muscle maintenance.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+    ),
+    _DietPlanOption(
+      name: 'Keto',
+      description: 'Very low-carb meals with higher fats and moderate protein.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=800&q=80',
+    ),
+    _DietPlanOption(
+      name: 'Low carb',
+      description:
+          'Reduced-carb meals while keeping more flexibility than keto.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80',
+    ),
+    _DietPlanOption(
+      name: 'Whole-foods focused',
+      description: 'Simple meals built around minimally processed ingredients.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80',
+    ),
+    _DietPlanOption(
+      name: 'Mediterranean',
+      description:
+          'Vegetables, grains, lean proteins and olive-oil based meals.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1544510808-91bcbee1df55?auto=format&fit=crop&w=800&q=80',
+    ),
+    _DietPlanOption(
+      name: 'Pescatarian',
+      description: 'Vegetarian-leaning meals with fish and seafood options.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
+    ),
+    _DietPlanOption(
+      name: 'Vegetarian',
+      description:
+          'Meat-free meals with dairy, eggs or plant proteins as needed.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1529059997568-3d847b1154f0?auto=format&fit=crop&w=800&q=80',
+    ),
+    _DietPlanOption(
+      name: 'Vegan',
+      description: 'Fully plant-based meals with no animal products.',
+      imageUrl:
+          'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?auto=format&fit=crop&w=800&q=80',
+    ),
   ];
 
   static const List<String> _allergyOptions = <String>[
@@ -141,7 +195,7 @@ class _MealRecommendationSetupPageState
   bool _isGenerating = false;
   String? _loadError;
   String? _selectedGoalType;
-  String? _selectedDietPlanType = _dietPlanTypes.first;
+  String? _selectedDietPlanType = _dietPlanTypes.first.name;
   final Set<String> _selectedDietTargets = {_dietTargets.first};
   final Set<String> _selectedMealTypes = {'Breakfast', 'Lunch', 'Dinner'};
   final Set<String> _likedCuisines = <String>{};
@@ -270,13 +324,13 @@ class _MealRecommendationSetupPageState
       case 3:
         return null;
       case 4:
-        if (_selectedDietPlanType == null) {
-          return 'Please choose a diet plan type.';
-        }
-        if (_selectedMealTypes.isEmpty) {
-          return 'Please select at least one meal type.';
-        }
-        return null;
+        return _selectedDietPlanType == null
+            ? 'Please choose a diet plan type.'
+            : null;
+      case 6:
+        return _selectedMealTypes.isEmpty
+            ? 'Please select at least one meal type.'
+            : null;
       default:
         return null;
     }
@@ -508,6 +562,8 @@ class _MealRecommendationSetupPageState
         return _buildPlanStyleStep();
       case 5:
         return _buildCuisineStep();
+      case 6:
+        return _buildMealTypesStep();
       default:
         return const SizedBox.shrink();
     }
@@ -573,57 +629,105 @@ class _MealRecommendationSetupPageState
   Widget _buildPlanStyleStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildDropdown<String>(
-          label: 'Diet plan type',
-          value: _selectedDietPlanType,
-          hintText: 'Choose plan type',
-          items: _dietPlanTypes,
-          onChanged: (value) => setState(() => _selectedDietPlanType = value),
-        ),
-        const SizedBox(height: 22),
-        Text(
-          'Meal types',
-          style: AppTextStyles.label.copyWith(
-            color: AppColours.onDark,
-            fontSize: 15,
+      children: _dietPlanTypes.map(_buildDietPlanOption).toList(),
+    );
+  }
+
+  Widget _buildDietPlanOption(_DietPlanOption option) {
+    final selected = _selectedDietPlanType == option.name;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Material(
+        color: AppColours.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: () => setState(() => _selectedDietPlanType = option.name),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: AppColours.inputFill,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: selected
+                    ? AppColours.primary.withValues(alpha: 0.7)
+                    : AppColours.dividerLightMuted,
+                width: selected ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(21),
+                  ),
+                  child: Image.network(
+                    option.imageUrl,
+                    width: 104,
+                    height: 104,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 104,
+                      height: 104,
+                      color: AppColours.primary.withValues(alpha: 0.16),
+                      child: const Icon(
+                        AppIcons.restaurantMenuRounded,
+                        color: AppColours.primary,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 14, 14, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                option.name,
+                                style: AppTextStyles.title.copyWith(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                            if (selected)
+                              const Icon(
+                                AppIcons.checkRounded,
+                                color: AppColours.primary,
+                                size: 22,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          option.description,
+                          style: AppTextStyles.bodyMuted.copyWith(
+                            color: AppColours.textMuted,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: _mealTypeOptions
-              .map((mealType) {
-                final selected = _selectedMealTypes.contains(mealType);
-                return FilterChip(
-                  selected: selected,
-                  label: Text(mealType),
-                  onSelected: (value) {
-                    setState(() {
-                      if (value) {
-                        _selectedMealTypes.add(mealType);
-                      } else {
-                        _selectedMealTypes.remove(mealType);
-                      }
-                    });
-                  },
-                  backgroundColor: AppColours.inputFill,
-                  selectedColor: AppColours.primary.withValues(alpha: 0.28),
-                  checkmarkColor: AppColours.primary,
-                  labelStyle: AppTextStyles.label.copyWith(
-                    color: selected ? AppColours.onDark : AppColours.textMuted,
-                  ),
-                  side: BorderSide(
-                    color: selected
-                        ? AppColours.primary.withValues(alpha: 0.45)
-                        : AppColours.transparent,
-                  ),
-                );
-              })
-              .toList(growable: false),
-        ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildMealTypesStep() {
+    return _buildMultiSelectChips(
+      label: 'Meal types',
+      options: _mealTypeOptions,
+      selectedValues: _selectedMealTypes,
     );
   }
 
@@ -1292,6 +1396,18 @@ class _MetricPill extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DietPlanOption {
+  const _DietPlanOption({
+    required this.name,
+    required this.description,
+    required this.imageUrl,
+  });
+
+  final String name;
+  final String description;
+  final String imageUrl;
 }
 
 class _CuisineButton extends StatelessWidget {
