@@ -224,7 +224,7 @@ class _PlansPageState extends State<PlansPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Want personalised meal recommendations based on your goals, preferences and foods you want to avoid?',
+                      'Want personalised meals based on your goals and preferences?',
                       style: AppTextStyles.bodyMuted.copyWith(
                         color: AppColours.textMuted,
                         fontSize: 15,
