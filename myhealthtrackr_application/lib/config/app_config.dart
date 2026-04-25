@@ -5,7 +5,8 @@ import 'package:flutter/foundation.dart';
 class AppConfig {
   const AppConfig._();
 
-  static const String _localNetworkApiBaseUrl = 'http://192.168.0.218:8000';
+  static const String _productionApiBaseUrl =
+      'https://api-myhealthtrackr.duckdns.org';
   static const String _localDevelopmentApiBaseUrl = 'http://127.0.0.1:8000';
 
   static String get apiBaseUrl {
@@ -13,7 +14,7 @@ class AppConfig {
     final baseUrl = override.isNotEmpty
         ? override
         : Platform.isAndroid || Platform.isIOS
-        ? _localNetworkApiBaseUrl
+        ? _productionApiBaseUrl
         : _localDevelopmentApiBaseUrl;
 
     return _requireSecureReleaseUrl(_normalizeBaseUrl(baseUrl));
