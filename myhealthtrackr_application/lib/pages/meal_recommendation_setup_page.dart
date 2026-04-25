@@ -61,60 +61,51 @@ class _MealRecommendationSetupPageState
       name: 'Balanced',
       description:
           'A flexible mix of protein, carbs and fats for everyday eating.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/balance_diet.jpeg',
     ),
     _DietPlanOption(
       name: 'High protein',
       description:
           'Protein-led meals to support fullness and muscle maintenance.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/highprotein_diet.jpeg',
     ),
     _DietPlanOption(
       name: 'Keto',
       description: 'Very low-carb meals with higher fats and moderate protein.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/keto_diet.jpeg',
     ),
     _DietPlanOption(
       name: 'Low carb',
       description:
           'Reduced-carb meals while keeping more flexibility than keto.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/lowcarb_diet.jpeg',
     ),
     _DietPlanOption(
       name: 'Whole-foods focused',
       description: 'Simple meals built around minimally processed ingredients.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/wholefoodfocus_diet.jpeg',
     ),
     _DietPlanOption(
       name: 'Mediterranean',
       description:
           'Vegetables, grains, lean proteins and olive-oil based meals.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1544510808-91bcbee1df55?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/mediterranean_diet.jpeg',
     ),
     _DietPlanOption(
       name: 'Pescatarian',
       description: 'Vegetarian-leaning meals with fish and seafood options.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/pescatarian_diet.jpeg',
     ),
     _DietPlanOption(
       name: 'Vegetarian',
       description:
           'Meat-free meals with dairy, eggs or plant proteins as needed.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1529059997568-3d847b1154f0?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/vegetarian_diet.jpeg',
     ),
     _DietPlanOption(
       name: 'Vegan',
       description: 'Fully plant-based meals with no animal products.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?auto=format&fit=crop&w=800&q=80',
+      imageAssetPath: 'assets/images/vegan_diet.jpeg',
     ),
   ];
 
@@ -845,23 +836,20 @@ class _MealRecommendationSetupPageState
                 width: selected ? 1.5 : 1,
               ),
             ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final stackVertically = constraints.maxWidth < 360;
-                final image = ClipRRect(
-                  borderRadius: stackVertically
-                      ? const BorderRadius.vertical(top: Radius.circular(21))
-                      : const BorderRadius.horizontal(
-                          left: Radius.circular(21),
-                        ),
-                  child: Image.network(
-                    option.imageUrl,
-                    width: stackVertically ? double.infinity : 104,
-                    height: stackVertically ? 132 : 104,
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(21),
+                  ),
+                  child: Image.asset(
+                    option.imageAssetPath,
+                    width: 104,
+                    height: 104,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
-                      width: stackVertically ? double.infinity : 104,
-                      height: stackVertically ? 132 : 104,
+                      width: 104,
+                      height: 104,
                       color: AppColours.primary.withValues(alpha: 0.16),
                       child: const Icon(
                         AppIcons.restaurantMenuRounded,
@@ -870,63 +858,46 @@ class _MealRecommendationSetupPageState
                       ),
                     ),
                   ),
-                );
-                final content = Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    stackVertically ? 14 : 0,
-                    14,
-                    14,
-                    14,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              option.name,
-                              style: AppTextStyles.title.copyWith(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 14, 14, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                option.name,
+                                style: AppTextStyles.title.copyWith(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
-                          ),
-                          if (selected)
-                            const Icon(
-                              AppIcons.checkRounded,
-                              color: AppColours.primary,
-                              size: 22,
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        option.description,
-                        style: AppTextStyles.bodyMuted.copyWith(
-                          color: AppColours.textMuted,
-                          fontSize: 13,
+                            if (selected)
+                              const Icon(
+                                AppIcons.checkRounded,
+                                color: AppColours.primary,
+                                size: 22,
+                              ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 6),
+                        Text(
+                          option.description,
+                          style: AppTextStyles.bodyMuted.copyWith(
+                            color: AppColours.textMuted,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-
-                if (stackVertically) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [image, content],
-                  );
-                }
-
-                return Row(
-                  children: [
-                    image,
-                    const SizedBox(width: 14),
-                    Expanded(child: content),
-                  ],
-                );
-              },
+                ),
+              ],
             ),
           ),
         ),
@@ -1845,12 +1816,12 @@ class _DietPlanOption {
   const _DietPlanOption({
     required this.name,
     required this.description,
-    required this.imageUrl,
+    required this.imageAssetPath,
   });
 
   final String name;
   final String description;
-  final String imageUrl;
+  final String imageAssetPath;
 }
 
 class _CuisineButton extends StatelessWidget {
