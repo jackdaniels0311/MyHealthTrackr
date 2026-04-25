@@ -1204,27 +1204,19 @@ class _MealRecommendationSetupPageState
         ),
         const SizedBox(height: 8),
         Text(
-          'Review AI-generated options for each meal type.',
+          'Pick a meal type to compare your options.',
           style: AppTextStyles.bodyMuted.copyWith(
             color: AppColours.textMuted,
             fontSize: 16,
           ),
         ),
         const SizedBox(height: 22),
+        _buildSummaryCard(plan),
+        const SizedBox(height: 14),
         Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSummaryCard(plan),
-                const SizedBox(height: 14),
-                for (final group in plan.mealGroups) ...[
-                  _buildMealGroupSection(group),
-                  const SizedBox(height: 18),
-                ],
-              ],
-            ),
-          ),
+          child: plan.mealGroups.isEmpty
+              ? _buildEmptyResultsCard()
+              : _buildMealGroupTabs(plan.mealGroups),
         ),
         const SizedBox(height: 12),
         Row(
@@ -1287,7 +1279,7 @@ class _MealRecommendationSetupPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            plan.summary,
+            _refinedSummary(plan.summary),
             style: AppTextStyles.bodyMuted.copyWith(
               color: AppColours.textMuted,
               fontSize: 15,
@@ -1306,22 +1298,120 @@ class _MealRecommendationSetupPageState
     );
   }
 
-  Widget _buildMealGroupSection(MealPlanMealGroupData group) {
+  String _refinedSummary(String summary) {
+    final trimmed = summary.trim();
+    if (trimmed.isEmpty) {
+      return 'Here are meal ideas matched to your setup.';
+    }
+
+    if (trimmed.length <= 120) {
+      return trimmed;
+    }
+
+    final sentenceEnd = trimmed.indexOf(RegExp(r'[.!?]'));
+    if (sentenceEnd > 35 && sentenceEnd <= 120) {
+      return trimmed.substring(0, sentenceEnd + 1);
+    }
+
+    return '${trimmed.substring(0, 117).trimRight()}...';
+  }
+
+  Widget _buildEmptyResultsCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColours.secondary.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColours.panelBorder),
+      ),
+      child: Text(
+        'No meal options were returned. Try regenerating your recommendations.',
+        style: AppTextStyles.bodyMuted.copyWith(
+          color: AppColours.textMuted,
+          fontSize: 15,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMealGroupTabs(List<MealPlanMealGroupData> groups) {
+    return DefaultTabController(
+      length: groups.length,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TabBar(
+            isScrollable: true,
+            labelColor: AppColours.onDark,
+            unselectedLabelColor: AppColours.textMuted,
+            indicatorColor: AppColours.primary,
+            indicatorWeight: 3,
+            dividerColor: AppColours.dividerLight.withValues(alpha: 0.4),
+            labelStyle: AppTextStyles.label.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+            unselectedLabelStyle: AppTextStyles.label.copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+            tabs: [for (final group in groups) Tab(text: group.mealType)],
+          ),
+          const SizedBox(height: 14),
+          Expanded(
+            child: TabBarView(
+              children: [
+                for (final group in groups) _buildMealGroupTabContent(group),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealGroupTabContent(MealPlanMealGroupData group) {
+    if (group.options.isEmpty) {
+      return SingleChildScrollView(
+        child: _buildEmptyMealTypeCard(group.mealType),
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var index = 0; index < group.options.length; index++) ...[
+            _buildMealCard(group.options[index], index: index + 1),
+            if (index != group.options.length - 1) const SizedBox(height: 12),
+          ],
+          const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyMealTypeCard(String mealType) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          group.mealType,
-          style: AppTextStyles.title.copyWith(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppColours.secondary.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColours.panelBorder),
+          ),
+          child: Text(
+            'No $mealType options were returned. Try regenerating your recommendations.',
+            style: AppTextStyles.bodyMuted.copyWith(
+              color: AppColours.textMuted,
+              fontSize: 15,
+            ),
           ),
         ),
-        const SizedBox(height: 10),
-        for (var index = 0; index < group.options.length; index++) ...[
-          _buildMealCard(group.options[index], index: index + 1),
-          if (index != group.options.length - 1) const SizedBox(height: 12),
-        ],
       ],
     );
   }
