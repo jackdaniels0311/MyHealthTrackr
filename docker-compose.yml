@@ -16,8 +16,7 @@ services:
       timeout: 3s
       retries: 10
     ports:
-      - "5432:5432"
-
+      - "127.0.0.1:5432:5432"
   api:
     build: ./api
     container_name: myhealthtrackr_api
@@ -32,7 +31,7 @@ services:
     networks:
       - internal
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./api:/app
 
