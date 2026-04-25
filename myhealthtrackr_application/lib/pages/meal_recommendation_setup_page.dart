@@ -414,6 +414,10 @@ class _MealRecommendationSetupPageState
       return _buildLoadError();
     }
 
+    if (_isGenerating) {
+      return _buildGeneratingBody();
+    }
+
     if (_mealPlan != null) {
       return _buildResultBody(_mealPlan!);
     }
@@ -506,6 +510,51 @@ class _MealRecommendationSetupPageState
                   'Try again',
                   style: AppTextStyles.button.copyWith(fontSize: 16),
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeneratingBody() {
+    return Center(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: AppColours.secondary.withValues(alpha: 0.98),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColours.primary.withValues(alpha: 0.32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 54,
+              height: 54,
+              child: CircularProgressIndicator(
+                color: AppColours.primary,
+                strokeWidth: 3,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Creating your meal plan',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.title.copyWith(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'The assistant is using your goals, preferences and food choices to build personalised recommendations.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMuted.copyWith(
+                color: AppColours.textMuted,
+                fontSize: 16,
               ),
             ),
           ],
