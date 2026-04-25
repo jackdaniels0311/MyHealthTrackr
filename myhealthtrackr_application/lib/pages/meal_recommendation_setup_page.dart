@@ -845,20 +845,23 @@ class _MealRecommendationSetupPageState
                 width: selected ? 1.5 : 1,
               ),
             ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(21),
-                  ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final stackVertically = constraints.maxWidth < 360;
+                final image = ClipRRect(
+                  borderRadius: stackVertically
+                      ? const BorderRadius.vertical(top: Radius.circular(21))
+                      : const BorderRadius.horizontal(
+                          left: Radius.circular(21),
+                        ),
                   child: Image.network(
                     option.imageUrl,
-                    width: 104,
-                    height: 104,
+                    width: stackVertically ? double.infinity : 104,
+                    height: stackVertically ? 132 : 104,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
-                      width: 104,
-                      height: 104,
+                      width: stackVertically ? double.infinity : 104,
+                      height: stackVertically ? 132 : 104,
                       color: AppColours.primary.withValues(alpha: 0.16),
                       child: const Icon(
                         AppIcons.restaurantMenuRounded,
@@ -867,46 +870,63 @@ class _MealRecommendationSetupPageState
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 14, 14, 14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                option.name,
-                                style: AppTextStyles.title.copyWith(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                );
+                final content = Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    stackVertically ? 14 : 0,
+                    14,
+                    14,
+                    14,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              option.name,
+                              style: AppTextStyles.title.copyWith(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                            if (selected)
-                              const Icon(
-                                AppIcons.checkRounded,
-                                color: AppColours.primary,
-                                size: 22,
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          option.description,
-                          style: AppTextStyles.bodyMuted.copyWith(
-                            color: AppColours.textMuted,
-                            fontSize: 13,
                           ),
+                          if (selected)
+                            const Icon(
+                              AppIcons.checkRounded,
+                              color: AppColours.primary,
+                              size: 22,
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        option.description,
+                        style: AppTextStyles.bodyMuted.copyWith(
+                          color: AppColours.textMuted,
+                          fontSize: 13,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                );
+
+                if (stackVertically) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [image, content],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    image,
+                    const SizedBox(width: 14),
+                    Expanded(child: content),
+                  ],
+                );
+              },
             ),
           ),
         ),

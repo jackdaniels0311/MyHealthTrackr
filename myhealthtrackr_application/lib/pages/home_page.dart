@@ -330,22 +330,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildProgressGrid(double availableWidth) {
-    final crossAxisCount = availableWidth >= 760 ? 3 : 2;
+    const crossAxisCount = 2;
     final totalSpacing = (crossAxisCount - 1) * 16;
     final cardWidth = (availableWidth - totalSpacing) / crossAxisCount;
-    final childAspectRatio = cardWidth / 188;
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _stats.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: childAspectRatio,
-      ),
-      itemBuilder: (context, index) => _buildProgressCard(_stats[index]),
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: [
+        for (final stat in _stats)
+          SizedBox(width: cardWidth, child: _buildProgressCard(stat)),
+      ],
     );
   }
 
@@ -408,7 +403,7 @@ class _HomePageState extends State<HomePage> {
               fontSize: 15,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 20),
           Align(
             alignment: Alignment.centerRight,
             child: Text(
@@ -461,37 +456,45 @@ class _HomePageState extends State<HomePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavDestination(
-              icon: AppIcons.homeOutlined,
-              activeIcon: AppIcons.homeRounded,
-              label: 'Home',
-              index: 0,
-              onTap: () => setState(() => _navIndex = 0),
+            Expanded(
+              child: _buildNavDestination(
+                icon: AppIcons.homeOutlined,
+                activeIcon: AppIcons.homeRounded,
+                label: 'Home',
+                index: 0,
+                onTap: () => setState(() => _navIndex = 0),
+              ),
             ),
-            _buildNavDestination(
-              icon: AppIcons.menuBookOutlined,
-              activeIcon: AppIcons.menuBookRounded,
-              label: 'Diary',
-              index: 1,
-              onTap: () => _openRootRoute(DiaryPage.routeName),
+            Expanded(
+              child: _buildNavDestination(
+                icon: AppIcons.menuBookOutlined,
+                activeIcon: AppIcons.menuBookRounded,
+                label: 'Diary',
+                index: 1,
+                onTap: () => _openRootRoute(DiaryPage.routeName),
+              ),
             ),
             _buildCenterNavAction(context),
-            _buildNavDestination(
-              icon: AppIcons.calendarMonthOutlined,
-              activeIcon: AppIcons.calendarMonthRounded,
-              label: 'Plans',
-              index: 3,
-              onTap: () => _openRootRoute(PlansPage.routeName),
+            Expanded(
+              child: _buildNavDestination(
+                icon: AppIcons.calendarMonthOutlined,
+                activeIcon: AppIcons.calendarMonthRounded,
+                label: 'Plans',
+                index: 3,
+                onTap: () => _openRootRoute(PlansPage.routeName),
+              ),
             ),
-            _buildNavDestination(
-              icon: AppIcons.personOutlineRounded,
-              activeIcon: AppIcons.personRounded,
-              label: 'Profile',
-              index: 4,
-              onTap: () {
-                setState(() => _navIndex = 4);
-                _openRootRoute(ProfilePage.routeName);
-              },
+            Expanded(
+              child: _buildNavDestination(
+                icon: AppIcons.personOutlineRounded,
+                activeIcon: AppIcons.personRounded,
+                label: 'Profile',
+                index: 4,
+                onTap: () {
+                  setState(() => _navIndex = 4);
+                  _openRootRoute(ProfilePage.routeName);
+                },
+              ),
             ),
           ],
         ),
@@ -513,14 +516,14 @@ class _HomePageState extends State<HomePage> {
         });
       },
       child: SizedBox(
-        width: 76,
+        width: 68,
         height: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
                 color: AppColours.primary,
@@ -537,7 +540,7 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const BarcodeScannerSymbolIcon(size: 30),
+                  const BarcodeScannerSymbolIcon(size: 28),
                   Text(
                     'Scan',
                     style: AppTextStyles.label.copyWith(
@@ -573,7 +576,6 @@ class _HomePageState extends State<HomePage> {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        width: 64,
         height: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -586,6 +588,8 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 6),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.label.copyWith(
                 color: selected ? AppColours.primary : _mutedText,
                 fontSize: 13,

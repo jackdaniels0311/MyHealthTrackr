@@ -69,28 +69,31 @@ class _StartPageState extends State<StartPage> {
               padding: const EdgeInsets.fromLTRB(24, 60, 24, 30),
               child: Column(
                 children: [
-                  RichText(
-                    text: const TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'MyHealthTrackr',
-                          style: TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            fontSize: 45,
-                            fontWeight: FontWeight.bold,
-                            color: AppColours.onDark,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: RichText(
+                      text: const TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'MyHealthTrackr',
+                            style: TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              fontSize: 45,
+                              fontWeight: FontWeight.bold,
+                              color: AppColours.onDark,
+                            ),
                           ),
-                        ),
-                        TextSpan(
-                          text: '.',
-                          style: TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            fontSize: 45,
-                            fontWeight: FontWeight.bold,
-                            color: AppColours.primary,
+                          TextSpan(
+                            text: '.',
+                            style: TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              fontSize: 45,
+                              fontWeight: FontWeight.bold,
+                              color: AppColours.primary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const Spacer(),

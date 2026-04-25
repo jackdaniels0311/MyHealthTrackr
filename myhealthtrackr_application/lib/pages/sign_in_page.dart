@@ -179,28 +179,34 @@ class _SignInPageState extends State<SignInPage> {
                   const SizedBox(height: 20),
 
                   /// Logo
-                  const Text.rich(
-                    TextSpan(
-                      children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text.rich(
                         TextSpan(
-                          text: "MyHealthTrackr",
-                          style: TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            fontSize: 45,
-                            fontWeight: FontWeight.bold,
-                            color: AppColours.onDark,
-                          ),
+                          children: [
+                            TextSpan(
+                              text: "MyHealthTrackr",
+                              style: TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                fontSize: 45,
+                                fontWeight: FontWeight.bold,
+                                color: AppColours.onDark,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ".",
+                              style: TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                fontSize: 45,
+                                fontWeight: FontWeight.bold,
+                                color: AppColours.primary,
+                              ),
+                            ),
+                          ],
                         ),
-                        TextSpan(
-                          text: ".",
-                          style: TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            fontSize: 45,
-                            fontWeight: FontWeight.bold,
-                            color: AppColours.primary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -209,18 +215,31 @@ class _SignInPageState extends State<SignInPage> {
           ),
 
           /// Login form pinned to bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: AppColours.secondary,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(45)),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.82,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: _buildLoginForm(),
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: AppColours.secondary,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(45)),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 32,
+                    ),
+                    child: _buildLoginForm(),
+                  ),
+                ),
+              ),
             ),
           ),
         ],

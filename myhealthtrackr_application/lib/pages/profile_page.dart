@@ -768,34 +768,42 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavDestination(
-              icon: AppIcons.homeOutlined,
-              activeIcon: AppIcons.homeRounded,
-              label: 'Home',
-              selected: false,
-              onTap: () => _openRootRoute(context, HomePage.routeName),
+            Expanded(
+              child: _buildNavDestination(
+                icon: AppIcons.homeOutlined,
+                activeIcon: AppIcons.homeRounded,
+                label: 'Home',
+                selected: false,
+                onTap: () => _openRootRoute(context, HomePage.routeName),
+              ),
             ),
-            _buildNavDestination(
-              icon: AppIcons.menuBookOutlined,
-              activeIcon: AppIcons.menuBookRounded,
-              label: 'Diary',
-              selected: false,
-              onTap: () => _openRootRoute(context, DiaryPage.routeName),
+            Expanded(
+              child: _buildNavDestination(
+                icon: AppIcons.menuBookOutlined,
+                activeIcon: AppIcons.menuBookRounded,
+                label: 'Diary',
+                selected: false,
+                onTap: () => _openRootRoute(context, DiaryPage.routeName),
+              ),
             ),
             _buildCenterNavAction(context),
-            _buildNavDestination(
-              icon: AppIcons.calendarMonthOutlined,
-              activeIcon: AppIcons.calendarMonthRounded,
-              label: 'Plans',
-              selected: false,
-              onTap: () => _openRootRoute(context, PlansPage.routeName),
+            Expanded(
+              child: _buildNavDestination(
+                icon: AppIcons.calendarMonthOutlined,
+                activeIcon: AppIcons.calendarMonthRounded,
+                label: 'Plans',
+                selected: false,
+                onTap: () => _openRootRoute(context, PlansPage.routeName),
+              ),
             ),
-            _buildNavDestination(
-              icon: AppIcons.personOutlineRounded,
-              activeIcon: AppIcons.personRounded,
-              label: 'Profile',
-              selected: true,
-              onTap: () {},
+            Expanded(
+              child: _buildNavDestination(
+                icon: AppIcons.personOutlineRounded,
+                activeIcon: AppIcons.personRounded,
+                label: 'Profile',
+                selected: true,
+                onTap: () {},
+              ),
             ),
           ],
         ),
@@ -808,14 +816,14 @@ class _ProfilePageState extends State<ProfilePage> {
       behavior: HitTestBehavior.opaque,
       onTap: () => Navigator.pushNamed(context, BarcodeScannerPage.routeName),
       child: SizedBox(
-        width: 76,
+        width: 68,
         height: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
                 color: AppColours.primary,
@@ -830,7 +838,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const BarcodeScannerSymbolIcon(size: 30),
+                  const BarcodeScannerSymbolIcon(size: 28),
                   Text(
                     'Scan',
                     style: AppTextStyles.label.copyWith(
@@ -864,7 +872,6 @@ class _ProfilePageState extends State<ProfilePage> {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        width: 64,
         height: double.infinity,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -877,6 +884,8 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 6),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.label.copyWith(
                 color: selected ? AppColours.primary : _mutedText,
                 fontSize: 13,

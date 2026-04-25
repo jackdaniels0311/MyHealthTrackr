@@ -73,6 +73,8 @@ class WeightProgressCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Weight progress',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.title.copyWith(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -85,34 +87,39 @@ class WeightProgressCard extends StatelessWidget {
           if (sortedEntries.isEmpty)
             const _EmptyWeightProgressState()
           else ...[
-            IntrinsicHeight(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _WeightStatTile(
-                      label: 'Starting weight',
-                      value: '${_formatWeight(firstWeight!)} kg',
-                      accent: AppColours.primary,
-                    ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final tiles = [
+                  _WeightStatTile(
+                    label: 'Starting weight',
+                    value: '${_formatWeight(firstWeight!)} kg',
+                    accent: AppColours.primary,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _WeightStatTile(
-                      label: 'Current weight',
-                      value: '${_formatWeight(latestWeight!)} kg',
-                      accent: _currentWeightAccent,
-                    ),
+                  _WeightStatTile(
+                    label: 'Current weight',
+                    value: '${_formatWeight(latestWeight!)} kg',
+                    accent: _currentWeightAccent,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _WeightStatTile(
-                      label: 'Progress',
-                      value: _formatWeightDelta(weightChange),
-                      accent: _progressAccent,
-                    ),
+                  _WeightStatTile(
+                    label: 'Progress',
+                    value: _formatWeightDelta(weightChange),
+                    accent: _progressAccent,
                   ),
-                ],
-              ),
+                ];
+
+                return IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var index = 0; index < tiles.length; index++) ...[
+                        Expanded(child: tiles[index]),
+                        if (index != tiles.length - 1)
+                          const SizedBox(width: 12),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 18),
             _WeightTrendChart(
@@ -123,7 +130,7 @@ class WeightProgressCard extends StatelessWidget {
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
+            child: FilledButton(
               onPressed: onLogCurrentWeight,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColours.primary,
@@ -136,8 +143,23 @@ class WeightProgressCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
-              icon: const Icon(AppIcons.monitorWeightOutlined, size: 20),
-              label: const Text('Log weight'),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(AppIcons.monitorWeightOutlined, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Log weight',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.button,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -229,12 +251,16 @@ class _WeightTrendChartState extends State<_WeightTrendChart> {
                             color: AppColours.primary,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            '${_formatDate(selectedEntry.recordedAt)}  •  ${_formatWeight(selectedEntry.weightKg)} kg',
-                            style: AppTextStyles.label.copyWith(
-                              color: AppColours.onDark,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                          Flexible(
+                            child: Text(
+                              '${_formatDate(selectedEntry.recordedAt)}  •  ${_formatWeight(selectedEntry.weightKg)} kg',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.label.copyWith(
+                                color: AppColours.onDark,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                           if (widget.onSelectEntry != null) ...[
@@ -268,17 +294,21 @@ class _WeightTrendChartState extends State<_WeightTrendChart> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SizedBox(
-                      width: 62,
+                      width: 68,
                       child: Column(
                         children: [
                           Expanded(
                             child: Align(
                               alignment: Alignment.topLeft,
-                              child: Text(
-                                '${_formatWeight(maxWeight)} kg',
-                                style: AppTextStyles.label.copyWith(
-                                  color: AppColours.textSubtle,
-                                  fontSize: 12,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  '${_formatWeight(maxWeight)} kg',
+                                  style: AppTextStyles.label.copyWith(
+                                    color: AppColours.textSubtle,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -286,11 +316,15 @@ class _WeightTrendChartState extends State<_WeightTrendChart> {
                           Expanded(
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: Text(
-                                '${_formatWeight(midWeight)} kg',
-                                style: AppTextStyles.label.copyWith(
-                                  color: AppColours.textSubtle,
-                                  fontSize: 12,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  '${_formatWeight(midWeight)} kg',
+                                  style: AppTextStyles.label.copyWith(
+                                    color: AppColours.textSubtle,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -298,11 +332,15 @@ class _WeightTrendChartState extends State<_WeightTrendChart> {
                           Expanded(
                             child: Align(
                               alignment: Alignment.bottomLeft,
-                              child: Text(
-                                '${_formatWeight(minWeight)} kg',
-                                style: AppTextStyles.label.copyWith(
-                                  color: AppColours.textSubtle,
-                                  fontSize: 12,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  '${_formatWeight(minWeight)} kg',
+                                  style: AppTextStyles.label.copyWith(
+                                    color: AppColours.textSubtle,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -450,31 +488,36 @@ class _WeightTrendChartState extends State<_WeightTrendChart> {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  const SizedBox(width: 72),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Text(
-                          _formatDate(firstEntry.recordedAt),
-                          style: AppTextStyles.label.copyWith(
-                            color: AppColours.textSubtle,
-                            fontSize: 12,
-                          ),
+              Padding(
+                padding: const EdgeInsets.only(left: 78),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _formatDate(firstEntry.recordedAt),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.label.copyWith(
+                          color: AppColours.textSubtle,
+                          fontSize: 12,
                         ),
-                        const Spacer(),
-                        Text(
-                          _formatDate(latestEntry.recordedAt),
-                          style: AppTextStyles.label.copyWith(
-                            color: AppColours.textSubtle,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _formatDate(latestEntry.recordedAt),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: AppTextStyles.label.copyWith(
+                          color: AppColours.textSubtle,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -530,8 +573,8 @@ class _WeightStatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 102,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 102),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(

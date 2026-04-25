@@ -169,28 +169,34 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text.rich(
-                    TextSpan(
-                      children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text.rich(
                         TextSpan(
-                          text: 'MyHealthTrackr',
-                          style: TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            fontSize: 45,
-                            fontWeight: FontWeight.bold,
-                            color: AppColours.onDark,
-                          ),
+                          children: [
+                            TextSpan(
+                              text: 'MyHealthTrackr',
+                              style: TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                fontSize: 45,
+                                fontWeight: FontWeight.bold,
+                                color: AppColours.onDark,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '.',
+                              style: TextStyle(
+                                fontFamily: AppTextStyles.fontFamily,
+                                fontSize: 45,
+                                fontWeight: FontWeight.bold,
+                                color: AppColours.primary,
+                              ),
+                            ),
+                          ],
                         ),
-                        TextSpan(
-                          text: '.',
-                          style: TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            fontSize: 45,
-                            fontWeight: FontWeight.bold,
-                            color: AppColours.primary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
