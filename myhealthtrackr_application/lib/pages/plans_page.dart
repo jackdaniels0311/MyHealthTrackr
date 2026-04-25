@@ -263,74 +263,38 @@ class _PlansPageState extends State<PlansPage> {
   }
 
   Widget _buildMealTypeTabs() {
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: AppColours.secondary.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _panelBorder),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (
-              var index = 0;
-              index < MealLoggingService.calorieMealTypes.length;
-              index++
-            ) ...[
-              _buildMealTypeTab(MealLoggingService.calorieMealTypes[index]),
-              if (index != MealLoggingService.calorieMealTypes.length - 1)
-                const SizedBox(width: 8),
-            ],
-          ],
-        ),
-      ),
+    final initialIndex = MealLoggingService.calorieMealTypes.indexOf(
+      _selectedMealType,
     );
-  }
 
-  Widget _buildMealTypeTab(String mealType) {
-    final isSelected = mealType == _selectedMealType;
-    final count = _meals
-        .where((meal) => meal.mealType == null || meal.mealType == mealType)
-        .length;
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedMealType = mealType),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        constraints: const BoxConstraints(minWidth: 116),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColours.primary
-              : AppColours.background.withValues(alpha: 0.35),
-          borderRadius: BorderRadius.circular(16),
+    return DefaultTabController(
+      length: MealLoggingService.calorieMealTypes.length,
+      initialIndex: initialIndex < 0 ? 0 : initialIndex,
+      child: TabBar(
+        isScrollable: true,
+        tabAlignment: TabAlignment.center,
+        labelColor: AppColours.onDark,
+        unselectedLabelColor: AppColours.textMuted,
+        indicatorColor: AppColours.primary,
+        indicatorWeight: 3,
+        dividerColor: AppColours.dividerLight.withValues(alpha: 0.4),
+        labelStyle: AppTextStyles.label.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w800,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              mealType,
-              style: AppTextStyles.label.copyWith(
-                color: isSelected ? AppColours.onDark : AppColours.textMuted,
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '$count saved',
-              style: AppTextStyles.label.copyWith(
-                color: isSelected
-                    ? AppColours.onDark.withValues(alpha: 0.82)
-                    : AppColours.textSubtle,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
+        unselectedLabelStyle: AppTextStyles.label.copyWith(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
         ),
+        onTap: (index) {
+          setState(() {
+            _selectedMealType = MealLoggingService.calorieMealTypes[index];
+          });
+        },
+        tabs: [
+          for (final mealType in MealLoggingService.calorieMealTypes)
+            Tab(text: mealType),
+        ],
       ),
     );
   }
