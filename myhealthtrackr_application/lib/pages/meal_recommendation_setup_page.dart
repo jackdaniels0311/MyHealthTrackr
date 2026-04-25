@@ -289,6 +289,10 @@ class _MealRecommendationSetupPageState
     setState(() => _currentStep -= 1);
   }
 
+  void _returnToMealPlans() {
+    Navigator.pop(context, _hasSavedMeal);
+  }
+
   Future<void> _goNext() async {
     if (_isGenerating) return;
 
@@ -1258,6 +1262,23 @@ class _MealRecommendationSetupPageState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(
+          width: 48,
+          height: 48,
+          child: OutlinedButton(
+            onPressed: _goBack,
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.zero,
+              foregroundColor: AppColours.onDark,
+              side: BorderSide(color: AppColours.borderLight),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Icon(AppIcons.arrowBackRounded, size: 22),
+          ),
+        ),
+        const SizedBox(height: 16),
         Text(
           'Your recommendations',
           style: AppTextStyles.headline.copyWith(
@@ -1282,48 +1303,23 @@ class _MealRecommendationSetupPageState
               : _buildMealGroupTabs(plan.mealGroups),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 56,
-                child: OutlinedButton(
-                  onPressed: _goBack,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColours.onDark,
-                    side: BorderSide(color: AppColours.borderLight),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Text(
-                    'Edit setup',
-                    style: AppTextStyles.button.copyWith(fontSize: 16),
-                  ),
-                ),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _returnToMealPlans,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColours.primary,
+              foregroundColor: AppColours.onDark,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: SizedBox(
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isGenerating ? null : _generatePlan,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColours.primary,
-                    foregroundColor: AppColours.onDark,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Text(
-                    'Regenerate',
-                    style: AppTextStyles.button.copyWith(fontSize: 16),
-                  ),
-                ),
-              ),
+            child: Text(
+              'Return to meal plans',
+              style: AppTextStyles.button.copyWith(fontSize: 16),
             ),
-          ],
+          ),
         ),
       ],
     );
