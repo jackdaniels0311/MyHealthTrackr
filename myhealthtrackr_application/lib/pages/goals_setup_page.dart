@@ -15,11 +15,13 @@ class GoalsSetupPage extends StatefulWidget {
     this.existingGoal,
     this.isEditingGoal = false,
     this.closeOnSave = false,
+    this.initialStartingWeightKg,
   });
 
   final UserGoal? existingGoal;
   final bool isEditingGoal;
   final bool closeOnSave;
+  final double? initialStartingWeightKg;
 
   @override
   State<GoalsSetupPage> createState() => _GoalsSetupPageState();
@@ -66,6 +68,7 @@ class _GoalsSetupPageState extends State<GoalsSetupPage> {
   void initState() {
     super.initState();
     _applyExistingGoal(widget.existingGoal);
+    _applyInitialStartingWeight();
   }
 
   @override
@@ -82,6 +85,18 @@ class _GoalsSetupPageState extends State<GoalsSetupPage> {
     _selectedWeeklyGoal = goal.weeklyGoal;
     _targetWeightController.text = _formatDecimal(goal.goalWeightKg);
     _startingWeightController.text = _formatDecimal(goal.goalStartWeightKg);
+  }
+
+  void _applyInitialStartingWeight() {
+    if (widget.existingGoal != null ||
+        _startingWeightController.text.isNotEmpty) {
+      return;
+    }
+
+    final initialWeight = widget.initialStartingWeightKg;
+    if (initialWeight == null || initialWeight <= 0) return;
+
+    _startingWeightController.text = _formatDecimal(initialWeight);
   }
 
   void _goBack() {

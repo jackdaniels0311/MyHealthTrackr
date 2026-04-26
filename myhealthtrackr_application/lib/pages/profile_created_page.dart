@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:myhealthtrackr/themes/app_icons.dart';
 import 'package:myhealthtrackr/pages/goals_setup_page.dart';
 import 'package:myhealthtrackr/pages/home_page.dart';
+import 'package:myhealthtrackr/services/profile_service.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_text_styles.dart';
 import 'package:myhealthtrackr/widgets/app_snack.dart';
 
 class ProfileCreatedPage extends StatefulWidget {
-  const ProfileCreatedPage({super.key, this.successMessage});
+  const ProfileCreatedPage({super.key, this.successMessage, this.profile});
 
   final String? successMessage;
+  final UserProfile? profile;
 
   @override
   State<ProfileCreatedPage> createState() => _ProfileCreatedPageState();
@@ -40,7 +42,10 @@ class _ProfileCreatedPageState extends State<ProfileCreatedPage> {
 
   void _goToGoalsSetup() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const GoalsSetupPage()),
+      MaterialPageRoute(
+        builder: (_) =>
+            GoalsSetupPage(initialStartingWeightKg: widget.profile?.weightKg),
+      ),
     );
   }
 

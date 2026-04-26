@@ -684,8 +684,8 @@ class _AccountCreatedPageState extends State<AccountCreatedPage> {
         const SizedBox(height: 12),
         Text(
           widget.isEditingProfile
-              ? 'Your account is linked to ${widget.email}. Use this guided flow to review and update your saved profile details, then confirm everything at the end.'
-              : 'Your account is ready for ${widget.email}. Next, we will walk through a few quick profile details one page at a time and save everything at the end.',
+              ? 'Your account is linked to ${widget.email}. Use this guided flow to review and update your saved profile details.'
+              : 'Your account is ready for ${widget.email}. Next, we will walk through a few quick profile details.',
           style: AppTextStyles.body.copyWith(
             color: AppColours.textHigh,
             fontSize: 17,

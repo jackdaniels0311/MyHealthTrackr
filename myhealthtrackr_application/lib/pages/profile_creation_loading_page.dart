@@ -57,8 +57,9 @@ class _ProfileCreationLoadingPageState
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (_) => const ProfileCreatedPage(
+          builder: (_) => ProfileCreatedPage(
             successMessage: 'Profile created successfully',
+            profile: savedProfile,
           ),
         ),
         (_) => false,
