@@ -208,6 +208,10 @@ class _FoodProductDetailsPageState extends State<FoodProductDetailsPage> {
           const SizedBox(height: 10),
           TextField(
             controller: _servingSizeController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+            onEditingComplete: () => FocusScope.of(context).unfocus(),
             style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: AppColours.onDark,
@@ -226,6 +230,9 @@ class _FoodProductDetailsPageState extends State<FoodProductDetailsPage> {
           TextField(
             controller: _servingQuantityController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+            onEditingComplete: () => FocusScope.of(context).unfocus(),
             style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: AppColours.onDark,

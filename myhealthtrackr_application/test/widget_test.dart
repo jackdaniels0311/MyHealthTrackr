@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myhealthtrackr/services/weight_history_service.dart';
+import 'package:myhealthtrackr/widgets/keyboard_dismiss_on_tap.dart';
 import 'package:myhealthtrackr/widgets/weight_progress_card.dart';
 
 void main() {
@@ -85,6 +86,38 @@ void main() {
 
     expect(find.text('Log weight'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('keyboard dismiss wrapper unfocuses text fields on outside tap', (
+    tester,
+  ) async {
+    final focusNode = FocusNode();
+    addTearDown(focusNode.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: KeyboardDismissOnTap(
+          child: Scaffold(
+            body: Column(
+              children: [
+                TextField(focusNode: focusNode),
+                const Expanded(child: SizedBox.expand()),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+
+    expect(focusNode.hasFocus, isTrue);
+
+    await tester.tapAt(const Offset(20, 300));
+    await tester.pump();
+
+    expect(focusNode.hasFocus, isFalse);
   });
 }
 

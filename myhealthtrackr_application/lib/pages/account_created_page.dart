@@ -904,6 +904,9 @@ class _AccountCreatedPageState extends State<AccountCreatedPage> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => FocusScope.of(context).unfocus(),
+          onEditingComplete: () => FocusScope.of(context).unfocus(),
           onChanged: (_) => setState(() {}),
           style: const TextStyle(
             fontFamily: AppTextStyles.fontFamily,

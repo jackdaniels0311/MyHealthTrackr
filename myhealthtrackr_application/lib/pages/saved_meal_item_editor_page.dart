@@ -233,6 +233,10 @@ class _SavedMealItemEditorPageState extends State<SavedMealItemEditorPage> {
           const SizedBox(height: 10),
           TextField(
             controller: _servingSizeController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+            onEditingComplete: () => FocusScope.of(context).unfocus(),
             style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: AppColours.onDark,
@@ -251,6 +255,9 @@ class _SavedMealItemEditorPageState extends State<SavedMealItemEditorPage> {
           TextField(
             controller: _quantityController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+            onEditingComplete: () => FocusScope.of(context).unfocus(),
             style: const TextStyle(
               fontFamily: AppTextStyles.fontFamily,
               color: AppColours.onDark,

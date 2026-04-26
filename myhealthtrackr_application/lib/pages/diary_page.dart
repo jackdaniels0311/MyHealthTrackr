@@ -1260,7 +1260,10 @@ class _DiaryPageState extends State<DiaryPage> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                textInputAction: TextInputAction.done,
                 onChanged: (value) => draftValue = value,
+                onFieldSubmitted: (_) => FocusScope.of(dialogContext).unfocus(),
+                onEditingComplete: () => FocusScope.of(dialogContext).unfocus(),
                 style: const TextStyle(
                   fontFamily: AppTextStyles.fontFamily,
                   color: AppColours.onDark,

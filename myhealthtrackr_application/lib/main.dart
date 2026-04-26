@@ -13,6 +13,7 @@ import 'package:myhealthtrackr/services/auth_controller.dart';
 import 'package:myhealthtrackr/services/auth_scope.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_text_styles.dart';
+import 'package:myhealthtrackr/widgets/keyboard_dismiss_on_tap.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,9 +48,11 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'MyHealthTrackr',
       builder: (context, child) {
-        return AuthScope(
-          controller: _authController,
-          child: child ?? const SizedBox.shrink(),
+        return KeyboardDismissOnTap(
+          child: AuthScope(
+            controller: _authController,
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
       home: const _AuthGate(),
@@ -71,7 +74,21 @@ class _MyAppState extends State<MyApp> {
         brightness: Brightness.dark,
         useMaterial3: true,
         fontFamily: AppTextStyles.fontFamily,
+        colorScheme: const ColorScheme.dark(
+          primary: AppColours.primary,
+          secondary: AppColours.primary,
+          surface: AppColours.secondary,
+          onSurface: AppColours.onDark,
+          error: AppColours.danger,
+        ),
+        primaryColor: AppColours.primary,
         scaffoldBackgroundColor: AppColours.background,
+        tabBarTheme: const TabBarThemeData(indicatorColor: AppColours.primary),
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: AppColours.primary,
+          selectionColor: AppColours.primary.withValues(alpha: 0.35),
+          selectionHandleColor: AppColours.primary,
+        ),
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
             TargetPlatform.android: _NoTransitionsPageTransitionsBuilder(),
