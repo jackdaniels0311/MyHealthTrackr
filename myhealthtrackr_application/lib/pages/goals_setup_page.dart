@@ -5,6 +5,7 @@ import 'package:myhealthtrackr/pages/start_page.dart';
 import 'package:myhealthtrackr/services/auth_scope.dart';
 import 'package:myhealthtrackr/services/auth_service.dart';
 import 'package:myhealthtrackr/services/goal_service.dart';
+import 'package:myhealthtrackr/services/weight_history_service.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_text_styles.dart';
 import 'package:myhealthtrackr/widgets/app_snack.dart';
@@ -53,6 +54,8 @@ class _GoalsSetupPageState extends State<GoalsSetupPage> {
   ];
 
   final GoalService _goalService = const GoalService();
+  final WeightHistoryService _weightHistoryService =
+      const WeightHistoryService();
   final TextEditingController _targetWeightController = TextEditingController();
   final TextEditingController _startingWeightController =
       TextEditingController();
@@ -214,8 +217,10 @@ class _GoalsSetupPageState extends State<GoalsSetupPage> {
     final authController = AuthScope.of(context);
 
     try {
-      final savedGoal = await authController.withAuthenticatedSession(
-        (session) => _goalService.saveGoal(
+      final savedGoal = await authController.withAuthenticatedSession((
+        session,
+      ) async {
+        final savedGoal = await _goalService.saveGoal(
           session: session,
           goal: UserGoal(
             goalId: widget.existingGoal?.goalId,
@@ -227,8 +232,18 @@ class _GoalsSetupPageState extends State<GoalsSetupPage> {
             weeklyGoal: weeklyGoal,
             goalStartDate: widget.existingGoal?.goalStartDate,
           ),
-        ),
-      );
+        );
+
+        if (widget.isEditingGoal) {
+          await _weightHistoryService.logCurrentWeight(
+            session: session,
+            weightKg: startingWeight,
+            recordedAt: DateTime.now(),
+          );
+        }
+
+        return savedGoal;
+      });
 
       if (!mounted) return;
 

@@ -7,6 +7,7 @@ import 'package:myhealthtrackr/services/meal_logging_service.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_text_styles.dart';
 import 'package:myhealthtrackr/widgets/app_snack.dart';
+import 'package:myhealthtrackr/widgets/nutrition_breakdown_card.dart';
 
 enum EditMealItemResult { updated, deleted }
 
@@ -349,6 +350,13 @@ class _EditMealItemPageState extends State<EditMealItemPage> {
       title: title,
       child: Column(
         children: [
+          NutritionBreakdownCard(
+            calories: nutrients.calories,
+            protein: nutrients.protein,
+            carbs: nutrients.carbs,
+            fat: nutrients.fat,
+          ),
+          const SizedBox(height: 16),
           _buildReadOnlyDetail(
             label: 'Calories',
             value: FoodService.formatCalories(nutrients.calories),

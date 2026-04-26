@@ -83,34 +83,42 @@ class _DiaryPageState extends State<DiaryPage> {
               ),
               SafeArea(
                 bottom: false,
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(22, 18, 22, bottomPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTopBar(context),
-                      const SizedBox(height: 24),
-                      _buildDateSelector(),
-                      const SizedBox(height: 28),
-                      _buildSummaryCard(),
-                      const SizedBox(height: 22),
-                      Text(
-                        'Meals',
-                        style: AppTextStyles.title.copyWith(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      if (_isLoading)
-                        _buildLoadingState()
-                      else if (_errorMessage != null)
-                        _buildErrorState()
-                      else
-                        ..._buildMealSections(context),
-                    ],
+                child: RefreshIndicator(
+                  onRefresh: _loadDiary,
+                  color: AppColours.primary,
+                  backgroundColor: AppColours.secondary,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: EdgeInsets.fromLTRB(22, 18, 22, bottomPadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTopBar(context),
+                        const SizedBox(height: 24),
+                        _buildDateSelector(),
+                        const SizedBox(height: 28),
+                        if (_isLoading)
+                          _buildLoadingState()
+                        else if (_errorMessage != null)
+                          _buildErrorState()
+                        else ...[
+                          _buildSummaryCard(),
+                          const SizedBox(height: 22),
+                          Text(
+                            'Meals',
+                            style: AppTextStyles.title.copyWith(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ..._buildMealSections(context),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),
