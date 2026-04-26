@@ -28,11 +28,11 @@ def find_or_create_food_log_for_datetime(
     *,
     user_id: int,
     log_date: datetime,
-) -> FoodLog:
+) -> tuple[FoodLog, bool]:
     log_day = log_day_from_datetime(log_date)
     existing_log = find_food_log_for_day(db, user_id=user_id, log_day=log_day)
     if existing_log is not None:
-        return existing_log
+        return existing_log, False
 
     food_log = FoodLog(user_id=user_id, log_date=log_date, log_day=log_day)
     db.add(food_log)
@@ -42,7 +42,7 @@ def find_or_create_food_log_for_datetime(
         db.rollback()
         existing_log = find_food_log_for_day(db, user_id=user_id, log_day=log_day)
         if existing_log is not None:
-            return existing_log
+            return existing_log, False
         raise
 
-    return food_log
+    return food_log, True

@@ -356,10 +356,29 @@ def _split_user_food_terms(value: str | None) -> list[str]:
     if cleaned is None:
         return []
     return [
-        term.strip()
+        normalized
         for term in re.split(r"[,;/\n]|\band\b", cleaned, flags=re.IGNORECASE)
-        if term.strip()
+        if (normalized := _normalize_user_food_term(term))
     ]
+
+
+def _normalize_user_food_term(value: str) -> str:
+    normalized = _normalize_for_matching(value).strip()
+    if not normalized:
+        return ""
+
+    normalized = re.sub(
+        r"^(allergic to|allergy to|intolerant to|intolerance to|avoid|no)\s+",
+        "",
+        normalized,
+    )
+    normalized = re.sub(
+        r"\s+(allergy|allergies|intolerance|intolerances)$",
+        "",
+        normalized,
+    )
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return normalized
 
 
 def _normalize_for_matching(value: str) -> str:

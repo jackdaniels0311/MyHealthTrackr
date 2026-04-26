@@ -282,11 +282,12 @@ def _find_or_create_food_log(
     user_id: int,
     target_date: datetime,
 ) -> FoodLog:
-    return find_or_create_food_log_for_datetime(
+    food_log, _ = find_or_create_food_log_for_datetime(
         db,
         user_id=user_id,
         log_date=target_date,
     )
+    return food_log
 
 
 def _find_or_create_meal_log(

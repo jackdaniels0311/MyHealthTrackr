@@ -45,13 +45,15 @@ def create_food_log(
     current_user: User = Depends(get_current_user),
 ):
     enforce_user_scope(user_id, current_user)
-    food_log = find_or_create_food_log_for_datetime(
+    food_log, created = find_or_create_food_log_for_datetime(
         db,
         user_id=user_id,
         log_date=payload.log_date,
     )
-    food_log.goal_weight = payload.goal_weight
-    food_log.goal_date = payload.goal_date
+    if created or "goal_weight" in payload.model_fields_set:
+        food_log.goal_weight = payload.goal_weight
+    if created or "goal_date" in payload.model_fields_set:
+        food_log.goal_date = payload.goal_date
     db.commit()
     db.refresh(food_log)
     return food_log

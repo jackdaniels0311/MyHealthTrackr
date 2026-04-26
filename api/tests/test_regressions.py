@@ -80,6 +80,55 @@ class SecurityRegressionTests(unittest.TestCase):
                 preferences=None,
             )
 
+    def test_meal_plan_rejects_common_allergy_wording(self):
+        for user_text, ingredient in (
+            ("peanut allergy", "peanut butter"),
+            ("allergic to shellfish", "shellfish"),
+            ("avoid eggs", "eggs"),
+        ):
+            with self.subTest(user_text=user_text, ingredient=ingredient):
+                self._assert_model_rejects_excluded_food(user_text, ingredient)
+
+    def _assert_model_rejects_excluded_food(
+        self,
+        user_text: str,
+        ingredient: str,
+    ) -> None:
+        model_result = MealPlanModelResult.model_validate(
+            {
+                "summary": "Meals match the target.",
+                "meal_groups": [
+                    {
+                        "meal_type": "Lunch",
+                        "options": [
+                            {
+                                "meal_type": "Lunch",
+                                "name": "Blocked food meal",
+                                "calories": 450,
+                                "protein": 30,
+                                "carbs": 40,
+                                "fat": 15,
+                                "fibre": 6,
+                                "sugar": 5,
+                                "ingredients": [
+                                    {"name": ingredient, "quantity": 120, "unit": "g"}
+                                ],
+                                "match_reason": "Fits the target.",
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
+        profile = UserProfile(user_id=1, allergies=user_text)
+
+        with self.assertRaises(gemini_meal_plans.GeminiMealPlanError):
+            gemini_meal_plans._validate_model_result_safety(
+                model_result,
+                profile=profile,
+                preferences=None,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
