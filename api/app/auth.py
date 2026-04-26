@@ -13,7 +13,14 @@ from .models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-JWT_SECRET = os.environ.get("JWT_SECRET", "dev_only_change_me")
+def _load_jwt_secret() -> str:
+    secret = os.environ.get("JWT_SECRET", "").strip()
+    if len(secret) < 32:
+        raise RuntimeError("JWT_SECRET must be set to at least 32 characters.")
+    return secret
+
+
+JWT_SECRET = _load_jwt_secret()
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 JWT_EXPIRES_MINUTES = int(os.environ.get("JWT_EXPIRES_MINUTES", "60"))
 JWT_REFRESH_EXPIRES_DAYS = int(os.environ.get("JWT_REFRESH_EXPIRES_DAYS", "30"))
@@ -74,11 +81,12 @@ def get_current_user(
         token_type = payload.get("token_type", ACCESS_TOKEN_TYPE)
         if subject is None or token_type != ACCESS_TOKEN_TYPE:
             raise credentials_exception
-    except JWTError:
+        user_id = int(subject)
+    except (JWTError, ValueError, TypeError):
         raise credentials_exception
 
     # subject is user id (stored as string)
-    user = db.scalar(select(User).where(User.id == int(subject)))
+    user = db.scalar(select(User).where(User.id == user_id))
     if not user:
         raise credentials_exception
     if not user.is_active:

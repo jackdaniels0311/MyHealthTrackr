@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime, date
 
 from sqlalchemy import (
@@ -284,6 +286,9 @@ class UserNutritionTarget(Base):
 
 class FoodLog(Base):
     __tablename__ = "food_logs"
+    __table_args__ = (
+        UniqueConstraint("user_id", "log_day", name="uq_food_logs_user_id_log_day"),
+    )
 
     food_log_id: Mapped[int] = mapped_column(
         Integer,
@@ -298,6 +303,7 @@ class FoodLog(Base):
     # Canonical diary day bucket. A meal belongs to this log even if it was
     # entered into the app on a different real-world day.
     log_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    log_day: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     goal_weight: Mapped[float | None] = mapped_column(Numeric(8, 2), nullable=True)
     goal_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 

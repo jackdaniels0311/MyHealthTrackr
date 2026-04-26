@@ -21,6 +21,7 @@ from ..schemas import (
     SavedMealOut,
     SavedMealUpdate,
 )
+from ..services.food_logs import find_or_create_food_log_for_datetime
 from ..services.user_food_history import UserFoodHistoryService
 
 router = APIRouter(tags=["Saved Meals"])
@@ -281,18 +282,11 @@ def _find_or_create_food_log(
     user_id: int,
     target_date: datetime,
 ) -> FoodLog:
-    food_logs = db.execute(
-        select(FoodLog).where(FoodLog.user_id == user_id)
-    ).scalars().all()
-
-    for food_log in food_logs:
-        if _is_same_calendar_day(food_log.log_date, target_date):
-            return food_log
-
-    food_log = FoodLog(user_id=user_id, log_date=target_date)
-    db.add(food_log)
-    db.flush()
-    return food_log
+    return find_or_create_food_log_for_datetime(
+        db,
+        user_id=user_id,
+        log_date=target_date,
+    )
 
 
 def _find_or_create_meal_log(
@@ -319,13 +313,3 @@ def _find_or_create_meal_log(
     db.add(meal_log)
     db.flush()
     return meal_log
-
-
-def _is_same_calendar_day(left: datetime, right: datetime) -> bool:
-    left_local = left.astimezone() if left.tzinfo is not None else left
-    right_local = right.astimezone() if right.tzinfo is not None else right
-    return (
-        left_local.year == right_local.year
-        and left_local.month == right_local.month
-        and left_local.day == right_local.day
-    )

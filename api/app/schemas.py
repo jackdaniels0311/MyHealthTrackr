@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 ActivityLevel = Literal[
@@ -77,6 +79,22 @@ class UserProfileIn(BaseModel):
     activity_level: ActivityLevel | None = None
     dietary_preferences: str | None = Field(default=None, max_length=255)
     allergies: str | None = Field(default=None, max_length=255)
+
+    @field_validator("date_of_birth")
+    @classmethod
+    def validate_date_of_birth(cls, value: date | None) -> date | None:
+        if value is None:
+            return value
+
+        today = date.today()
+        age_years = today.year - value.year - (
+            (today.month, today.day) < (value.month, value.day)
+        )
+        if age_years < 0:
+            raise ValueError("Date of birth cannot be in the future.")
+        if age_years > 150:
+            raise ValueError("Date of birth must be within the last 150 years.")
+        return value
 
 
 class UserProfileOut(UserProfileIn):

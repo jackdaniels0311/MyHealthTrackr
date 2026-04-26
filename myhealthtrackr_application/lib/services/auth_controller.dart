@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:myhealthtrackr/services/api_client.dart';
 import 'package:myhealthtrackr/services/auth_service.dart';
+import 'package:myhealthtrackr/services/auth_token_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum AuthStatus { loading, authenticated, unauthenticated }
@@ -10,8 +11,10 @@ enum AuthStatus { loading, authenticated, unauthenticated }
 class AuthController extends ChangeNotifier {
   AuthController({
     AuthService? authService,
+    AuthTokenStore? tokenStore,
     Future<SharedPreferences>? preferences,
   }) : _authService = authService ?? const AuthService(),
+       _tokenStore = tokenStore ?? const SecureAuthTokenStore(),
        _preferences = preferences ?? SharedPreferences.getInstance();
 
   static const _accessTokenKey = 'auth.access_token';
@@ -20,6 +23,7 @@ class AuthController extends ChangeNotifier {
   static const _emailKey = 'auth.email';
 
   final AuthService _authService;
+  final AuthTokenStore _tokenStore;
   final Future<SharedPreferences> _preferences;
 
   AuthStatus _status = AuthStatus.loading;
@@ -38,9 +42,10 @@ class AuthController extends ChangeNotifier {
 
     try {
       final preferences = await _preferences;
-      final accessToken = preferences.getString(_accessTokenKey);
-      final refreshToken = preferences.getString(_refreshTokenKey);
-      final tokenType = preferences.getString(_tokenTypeKey);
+      final storedTokens = await _readStoredSessionTokens(preferences);
+      final accessToken = storedTokens.accessToken;
+      final refreshToken = storedTokens.refreshToken;
+      final tokenType = storedTokens.tokenType;
       _currentEmail = preferences.getString(_emailKey);
 
       if (accessToken == null || tokenType == null) {
@@ -157,11 +162,11 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> _storeSession(AuthSession session, {String? email}) async {
-    final preferences = await _preferences;
-    await preferences.setString(_accessTokenKey, session.accessToken);
-    await preferences.setString(_refreshTokenKey, session.refreshToken);
-    await preferences.setString(_tokenTypeKey, session.tokenType);
+    await _tokenStore.write(_accessTokenKey, session.accessToken);
+    await _tokenStore.write(_refreshTokenKey, session.refreshToken);
+    await _tokenStore.write(_tokenTypeKey, session.tokenType);
     if (email != null) {
+      final preferences = await _preferences;
       await preferences.setString(_emailKey, email);
       _currentEmail = email;
     }
@@ -169,6 +174,9 @@ class AuthController extends ChangeNotifier {
 
   Future<void> _clearStoredSession() async {
     final preferences = await _preferences;
+    await _tokenStore.delete(_accessTokenKey);
+    await _tokenStore.delete(_refreshTokenKey);
+    await _tokenStore.delete(_tokenTypeKey);
     await preferences.remove(_accessTokenKey);
     await preferences.remove(_refreshTokenKey);
     await preferences.remove(_tokenTypeKey);
@@ -202,8 +210,48 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<String?> _readStoredValue(String key) async {
-    final preferences = await _preferences;
-    return preferences.getString(key);
+    return _tokenStore.read(key);
+  }
+
+  Future<_StoredSessionTokens> _readStoredSessionTokens(
+    SharedPreferences preferences,
+  ) async {
+    var accessToken = await _tokenStore.read(_accessTokenKey);
+    var refreshToken = await _tokenStore.read(_refreshTokenKey);
+    var tokenType = await _tokenStore.read(_tokenTypeKey);
+
+    final legacyAccessToken = preferences.getString(_accessTokenKey);
+    final legacyRefreshToken = preferences.getString(_refreshTokenKey);
+    final legacyTokenType = preferences.getString(_tokenTypeKey);
+    final hasLegacyTokens =
+        legacyAccessToken != null ||
+        legacyRefreshToken != null ||
+        legacyTokenType != null;
+
+    if (accessToken == null && legacyAccessToken != null) {
+      accessToken = legacyAccessToken;
+      await _tokenStore.write(_accessTokenKey, legacyAccessToken);
+    }
+    if (refreshToken == null && legacyRefreshToken != null) {
+      refreshToken = legacyRefreshToken;
+      await _tokenStore.write(_refreshTokenKey, legacyRefreshToken);
+    }
+    if (tokenType == null && legacyTokenType != null) {
+      tokenType = legacyTokenType;
+      await _tokenStore.write(_tokenTypeKey, legacyTokenType);
+    }
+
+    if (hasLegacyTokens) {
+      await preferences.remove(_accessTokenKey);
+      await preferences.remove(_refreshTokenKey);
+      await preferences.remove(_tokenTypeKey);
+    }
+
+    return _StoredSessionTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      tokenType: tokenType,
+    );
   }
 
   Future<void> _setUnauthenticated({
@@ -222,4 +270,16 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
     }
   }
+}
+
+class _StoredSessionTokens {
+  const _StoredSessionTokens({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.tokenType,
+  });
+
+  final String? accessToken;
+  final String? refreshToken;
+  final String? tokenType;
 }

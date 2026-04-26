@@ -268,7 +268,7 @@ class MealLoggingService {
   }) async {
     final userId = await _fetchCurrentUserId(session: session);
     final logs = await _apiClient.getJsonList(
-      AppConfig.userFoodLogsUri(userId),
+      AppConfig.userFoodLogsUri(userId, logDay: _formatLogDay(date)),
       session: session,
     );
 
@@ -336,21 +336,6 @@ class MealLoggingService {
     required int userId,
     required DateTime date,
   }) async {
-    final logs = await _apiClient.getJsonList(
-      AppConfig.userFoodLogsUri(userId),
-      session: session,
-    );
-
-    for (final log in logs) {
-      final parsed = _parseDateTime(log['log_date']);
-      final id = _readNullableInt(log['food_log_id']);
-      if (parsed == null || id == null) continue;
-
-      if (_isSameCalendarDay(parsed.toLocal(), date)) {
-        return id;
-      }
-    }
-
     final createdLog = await _apiClient.postJson(
       AppConfig.userFoodLogsUri(userId),
       session: session,
@@ -442,6 +427,14 @@ class MealLoggingService {
     return left.year == right.year &&
         left.month == right.month &&
         left.day == right.day;
+  }
+
+  static String _formatLogDay(DateTime value) {
+    final local = value.toLocal();
+    final year = local.year.toString().padLeft(4, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
   }
 
   static String? _normalizeMealType(String? rawValue) {

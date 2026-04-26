@@ -55,8 +55,14 @@ class AppConfig {
       Uri.parse('${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/goals');
   static Uri userGoalUri(int userId, int goalId) =>
       Uri.parse('${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/goals/$goalId');
-  static Uri userFoodLogsUri(int userId) =>
-      Uri.parse('${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/food-logs');
+  static Uri userFoodLogsUri(int userId, {String? logDay}) =>
+      Uri.parse(
+        '${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/food-logs',
+      ).replace(
+        queryParameters: logDay == null || logDay.trim().isEmpty
+            ? null
+            : {'log_day': logDay.trim()},
+      );
   static Uri userMealLogsUri(int userId, {int? foodLogId}) =>
       Uri.parse(
         '${_normalizeBaseUrl(apiBaseUrl)}/users/$userId/meal-logs',

@@ -12,17 +12,6 @@ from ..security import hash_password
 router = APIRouter(tags=["Users"])
 
 
-@router.get("/users", response_model=list[UserOut])
-def list_users(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    users = db.execute(select(User).offset(skip).limit(limit)).scalars().all()
-    return users
-
-
 @router.post("/users", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     email = user.email.lower()
@@ -37,16 +26,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
-
-
-@router.get("/users/all", response_model=list[UserOut], include_in_schema=False)
-def read_users(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return list_users(skip=skip, limit=limit, db=db, current_user=current_user)
 
 
 @router.get("/users/me", response_model=UserOut, include_in_schema=False)
