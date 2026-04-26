@@ -20,6 +20,7 @@ import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_text_styles.dart';
 import 'package:myhealthtrackr/widgets/app_snack.dart';
 import 'package:myhealthtrackr/widgets/barcode_scanner_symbol_icon.dart';
+import 'package:myhealthtrackr/widgets/confirmation_dialog.dart';
 import 'package:myhealthtrackr/widgets/weight_progress_card.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -213,6 +214,19 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _logout() async {
+    final shouldSignOut = await showConfirmationDialog(
+      context: context,
+      title: 'Sign out?',
+      message:
+          "You'll be returned to the start screen, and you can sign back in any time.",
+      confirmLabel: 'Sign out',
+      cancelLabel: 'Stay signed in',
+      isDestructive: true,
+      emphasizeCancelAction: true,
+    );
+
+    if (!mounted || !shouldSignOut) return;
+
     await AuthScope.of(context).logout();
 
     if (!mounted) return;
@@ -221,7 +235,7 @@ class _ProfilePageState extends State<ProfilePage> {
       context,
       StartPage.routeName,
       (_) => false,
-      arguments: const StartPageMessage('Successfully sign out'),
+      arguments: const StartPageMessage('Successfully signed out'),
     );
   }
 
@@ -323,29 +337,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         onSelectEntry: _openWeightEntryEditor,
                       ),
                       const SizedBox(height: 24),
-                      TextButton(
-                        onPressed: _logout,
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColours.onDark,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(AppIcons.logoutRounded, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Sign out',
-                              style: AppTextStyles.body.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildSignOutAction(),
                     ],
                   ),
                 ),
@@ -354,6 +346,55 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         bottomNavigationBar: _buildBottomNav(context),
+      ),
+    );
+  }
+
+  Widget _buildSignOutAction() {
+    const borderRadius = BorderRadius.all(Radius.circular(18));
+
+    return Material(
+      color: AppColours.secondary.withValues(alpha: 0.92),
+      borderRadius: borderRadius,
+      child: InkWell(
+        onTap: _logout,
+        borderRadius: borderRadius,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+            border: Border.all(
+              color: AppColours.danger.withValues(alpha: 0.46),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColours.danger.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  AppIcons.logoutRounded,
+                  size: 21,
+                  color: AppColours.danger,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Sign out',
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

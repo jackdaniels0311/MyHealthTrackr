@@ -473,43 +473,8 @@ class _SignInPageState extends State<SignInPage> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
-
-          const Center(
-            child: Text(
-              "Continue with:",
-              style: TextStyle(
-                fontFamily: AppTextStyles.fontFamily,
-                color: AppColours.textMuted,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSocialButton('assets/icons/apple.png'),
-              const SizedBox(width: 12),
-              _buildSocialButton('assets/icons/google.png'),
-              const SizedBox(width: 12),
-              _buildSocialButton('assets/icons/facebook.png'),
-            ],
-          ),
         ],
       ),
-    );
-  }
-
-  // Small helper builder for social sign-in buttons.
-  Widget _buildSocialButton(String assetPath) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColours.inputFill,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Image.asset(assetPath, width: 32, height: 32),
     );
   }
 }
