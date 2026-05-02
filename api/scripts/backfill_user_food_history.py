@@ -7,7 +7,7 @@ from sqlalchemy import delete, func, select
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.db import SessionLocal
+from app.database.session import SessionLocal
 from app.models import FoodLog, MealItem, MealLog, UserFoodItem
 from app.services.user_food_history import UserFoodHistoryService
 

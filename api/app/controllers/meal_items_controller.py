@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..api_docs import AUTHENTICATED_RESPONSES
-from ..auth import get_current_user
-from ..db import get_db
+from ..core.api_docs import AUTHENTICATED_RESPONSES
+from ..core.auth import get_current_user
+from ..database.session import get_db
 from ..deps import (
     apply_updates,
     enforce_user_scope,

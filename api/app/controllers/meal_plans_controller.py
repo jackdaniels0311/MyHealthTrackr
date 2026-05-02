@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..api_docs import MEAL_PLAN_RESPONSES
-from ..auth import get_current_user
-from ..db import get_db
+from ..core.api_docs import MEAL_PLAN_RESPONSES
+from ..core.auth import get_current_user
+from ..database.session import get_db
 from ..deps import enforce_user_scope, get_profile_by_user_id
 from ..models import User, UserMealRecommendationPreference
 from ..schemas import MealPlanGenerateRequest, MealPlanOut, MealPlanPreferencesOut

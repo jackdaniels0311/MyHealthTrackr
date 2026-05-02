@@ -22,7 +22,7 @@ except ModuleNotFoundError as exc:
 
 class SecurityRegressionTests(unittest.TestCase):
     def test_jwt_secret_must_be_configured_and_strong(self):
-        auth = importlib.import_module("app.auth")
+        auth = importlib.import_module("app.core.auth")
         previous_secret = os.environ.get("JWT_SECRET")
         try:
             os.environ["JWT_SECRET"] = "short"

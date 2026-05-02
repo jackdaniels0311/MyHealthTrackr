@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from ..api_docs import EXTERNAL_FOOD_RESPONSES
-from ..auth import get_current_user
-from ..db import get_db
+from ..core.api_docs import EXTERNAL_FOOD_RESPONSES
+from ..core.auth import get_current_user
+from ..database.session import get_db
 from ..models import User
 from ..schemas import FoodLookupResult, FoodSearchResult
 from ..services.open_food_facts import OpenFoodFactsError, OpenFoodFactsService

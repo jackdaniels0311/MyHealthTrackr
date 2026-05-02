@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from ..api_docs import AUTHENTICATED_RESPONSES
-from ..auth import get_current_user
-from ..db import get_db
+from ..core.api_docs import AUTHENTICATED_RESPONSES
+from ..core.auth import get_current_user
+from ..database.session import get_db
 from ..deps import (
     enforce_user_scope,
     normalize_meal_item_serving_fields,

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .api_docs import (
+from .core.api_docs import (
     API_DESCRIPTION,
     API_TITLE,
     API_VERSION,

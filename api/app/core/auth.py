@@ -8,8 +8,8 @@ from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .db import get_db
-from .models import User
+from ..database.session import get_db
+from ..models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 

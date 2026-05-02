@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..api_docs import CONFLICT_RESPONSES
-from ..auth import get_current_user
-from ..db import get_db
+from ..core.api_docs import CONFLICT_RESPONSES
+from ..core.auth import get_current_user
+from ..database.session import get_db
 from ..deps import enforce_user_scope, require_user
 from ..models import User
 from ..schemas import UserCreate, UserOut, UserUpdate
-from ..security import hash_password
+from ..core.security import hash_password
 
 router = APIRouter(tags=["Users"], responses=CONFLICT_RESPONSES)
 

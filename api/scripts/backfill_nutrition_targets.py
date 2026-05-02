@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.db import SessionLocal
+from app.database.session import SessionLocal
 from app.services.nutrition_targets import NutritionTargetCalculator
 
 

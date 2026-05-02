@@ -5,9 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ..api_docs import CONFLICT_RESPONSES
-from ..auth import get_current_user
-from ..db import get_db
+from ..core.api_docs import CONFLICT_RESPONSES
+from ..core.auth import get_current_user
+from ..database.session import get_db
 from ..deps import apply_updates, enforce_user_scope, require_food_log
 from ..models import FoodLog, User
 from ..schemas import FoodLogCreate, FoodLogOut, FoodLogUpdate
