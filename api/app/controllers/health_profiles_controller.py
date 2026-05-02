@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from ..core.api_docs import CONFLICT_RESPONSES
 from ..core.auth import get_current_user
 from ..database.session import get_db
-from ..deps import (
+from ..dependencies import (
     apply_updates,
     enforce_user_scope,
     get_profile_by_user_id,

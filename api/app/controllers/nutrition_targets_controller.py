@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ..core.api_docs import AUTHENTICATED_RESPONSES
 from ..core.auth import get_current_user
 from ..database.session import get_db
-from ..deps import enforce_user_scope
+from ..dependencies import enforce_user_scope
 from ..models import User
 from ..schemas import NutritionTargetsOut
 from ..services.nutrition_targets import NutritionTargetCalculator

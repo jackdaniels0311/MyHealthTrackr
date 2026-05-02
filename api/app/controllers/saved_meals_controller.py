@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 from ..core.api_docs import AUTHENTICATED_RESPONSES
 from ..core.auth import get_current_user
 from ..database.session import get_db
-from ..deps import (
+from ..dependencies import (
     enforce_user_scope,
     normalize_meal_item_serving_fields,
     require_saved_meal,

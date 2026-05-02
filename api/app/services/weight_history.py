@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
-from ..deps import require_weight_entry
+from ..dependencies import require_weight_entry
 from ..models import UserProfile, WeightEntry
 from .nutrition_targets import NutritionTargetCalculator
 

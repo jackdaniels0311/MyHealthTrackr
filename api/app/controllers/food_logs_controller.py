@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from ..core.api_docs import CONFLICT_RESPONSES
 from ..core.auth import get_current_user
 from ..database.session import get_db
-from ..deps import apply_updates, enforce_user_scope, require_food_log
+from ..dependencies import apply_updates, enforce_user_scope, require_food_log
 from ..models import FoodLog, User
 from ..schemas import FoodLogCreate, FoodLogOut, FoodLogUpdate
 from ..services.food_logs import find_or_create_food_log_for_datetime, log_day_from_datetime
