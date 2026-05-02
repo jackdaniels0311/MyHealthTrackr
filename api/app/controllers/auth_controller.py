@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..api_docs import AUTH_RESPONSES
 from ..auth import (
     REFRESH_TOKEN_TYPE,
     create_access_token,
@@ -15,7 +16,7 @@ from ..models import User
 from ..schemas import AuthToken, RefreshTokenRequest
 from ..security import verify_password
 
-router = APIRouter(tags=["Auth"])
+router = APIRouter(tags=["Auth"], responses=AUTH_RESPONSES)
 
 
 @router.post("/auth/login", response_model=AuthToken)

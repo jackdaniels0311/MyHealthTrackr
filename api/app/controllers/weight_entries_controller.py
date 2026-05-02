@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
+from ..api_docs import AUTHENTICATED_RESPONSES
 from ..auth import get_current_user
 from ..db import get_db
 from ..deps import enforce_user_scope
@@ -8,7 +9,7 @@ from ..models import User
 from ..schemas import WeightEntryCreate, WeightEntryOut, WeightEntryUpdate
 from ..services.weight_history import WeightHistoryService
 
-router = APIRouter(tags=["Weight Entries"])
+router = APIRouter(tags=["Weight Entries"], responses=AUTHENTICATED_RESPONSES)
 _weight_history_service = WeightHistoryService()
 
 

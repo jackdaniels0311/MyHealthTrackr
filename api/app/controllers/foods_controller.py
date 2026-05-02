@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from ..api_docs import EXTERNAL_FOOD_RESPONSES
 from ..auth import get_current_user
 from ..db import get_db
 from ..models import User
@@ -8,7 +9,7 @@ from ..schemas import FoodLookupResult, FoodSearchResult
 from ..services.open_food_facts import OpenFoodFactsError, OpenFoodFactsService
 from ..services.user_food_history import UserFoodHistoryService
 
-router = APIRouter(tags=["Foods"])
+router = APIRouter(tags=["Foods"], responses=EXTERNAL_FOOD_RESPONSES)
 _food_history_service = UserFoodHistoryService()
 
 

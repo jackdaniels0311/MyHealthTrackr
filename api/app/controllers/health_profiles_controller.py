@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..api_docs import CONFLICT_RESPONSES
 from ..auth import get_current_user
 from ..db import get_db
 from ..deps import (
@@ -16,7 +17,7 @@ from ..schemas import UserProfileIn, UserProfileOut
 from ..services.nutrition_targets import NutritionTargetCalculator
 from ..services.weight_history import WeightHistoryService
 
-router = APIRouter(tags=["Health Profiles"])
+router = APIRouter(tags=["Health Profiles"], responses=CONFLICT_RESPONSES)
 
 _nutrition_target_calculator = NutritionTargetCalculator()
 _weight_history_service = WeightHistoryService()

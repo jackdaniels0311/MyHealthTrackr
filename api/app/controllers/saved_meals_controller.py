@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from ..api_docs import AUTHENTICATED_RESPONSES
 from ..auth import get_current_user
 from ..db import get_db
 from ..deps import (
@@ -24,7 +25,7 @@ from ..schemas import (
 from ..services.food_logs import find_or_create_food_log_for_datetime
 from ..services.user_food_history import UserFoodHistoryService
 
-router = APIRouter(tags=["Saved Meals"])
+router = APIRouter(tags=["Saved Meals"], responses=AUTHENTICATED_RESPONSES)
 _food_history_service = UserFoodHistoryService()
 
 

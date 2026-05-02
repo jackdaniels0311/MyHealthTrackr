@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..api_docs import AUTHENTICATED_RESPONSES
 from ..auth import get_current_user
 from ..db import get_db
 from ..deps import (
@@ -14,7 +15,7 @@ from ..models import FoodLog, MealLog, User
 from ..schemas import MealLogCreate, MealLogOut, MealLogUpdate
 from ..services.user_food_history import UserFoodHistoryService
 
-router = APIRouter(tags=["Meal Logs"])
+router = APIRouter(tags=["Meal Logs"], responses=AUTHENTICATED_RESPONSES)
 _food_history_service = UserFoodHistoryService()
 
 

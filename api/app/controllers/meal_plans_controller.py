@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..api_docs import MEAL_PLAN_RESPONSES
 from ..auth import get_current_user
 from ..db import get_db
 from ..deps import enforce_user_scope, get_profile_by_user_id
@@ -14,7 +15,7 @@ from ..services.gemini_meal_plans import (
 )
 from ..services.nutrition_targets import NutritionTargetCalculator
 
-router = APIRouter(tags=["Meal Plans"])
+router = APIRouter(tags=["Meal Plans"], responses=MEAL_PLAN_RESPONSES)
 
 _nutrition_target_calculator = NutritionTargetCalculator()
 _meal_plan_service = GeminiMealPlanService()

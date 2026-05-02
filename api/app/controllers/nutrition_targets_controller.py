@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..api_docs import AUTHENTICATED_RESPONSES
 from ..auth import get_current_user
 from ..db import get_db
 from ..deps import enforce_user_scope
@@ -8,7 +9,7 @@ from ..models import User
 from ..schemas import NutritionTargetsOut
 from ..services.nutrition_targets import NutritionTargetCalculator
 
-router = APIRouter(tags=["Nutrition Targets"])
+router = APIRouter(tags=["Nutrition Targets"], responses=AUTHENTICATED_RESPONSES)
 
 _calculator = NutritionTargetCalculator()
 

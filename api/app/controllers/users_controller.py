@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..api_docs import CONFLICT_RESPONSES
 from ..auth import get_current_user
 from ..db import get_db
 from ..deps import enforce_user_scope, require_user
@@ -9,7 +10,7 @@ from ..models import User
 from ..schemas import UserCreate, UserOut, UserUpdate
 from ..security import hash_password
 
-router = APIRouter(tags=["Users"])
+router = APIRouter(tags=["Users"], responses=CONFLICT_RESPONSES)
 
 
 @router.post("/users", response_model=UserOut, status_code=status.HTTP_201_CREATED)
