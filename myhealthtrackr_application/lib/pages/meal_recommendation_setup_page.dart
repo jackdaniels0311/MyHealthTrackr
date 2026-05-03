@@ -32,23 +32,23 @@ class _MealRecommendationSetupPageState
     ),
     _SetupStep(
       title: 'Allergies',
-      subtitle: 'Confirm foods the assistant must avoid.',
+      subtitle: 'Confirm foods that must be avoid.',
     ),
     _SetupStep(
       title: 'Dietary preferences',
-      subtitle: 'Confirm how you prefer to eat.',
+      subtitle: 'Confirm your dietary needs.',
     ),
     _SetupStep(
       title: 'Foods to avoid',
-      subtitle: 'Select foods you dislike or enter your own.',
+      subtitle: 'Select or enter foods you dislike to avoid in form meal plans.',
     ),
     _SetupStep(
       title: 'Choose a plan style',
-      subtitle: 'Select the diet approach you want the assistant to follow.',
+      subtitle: 'Select the diet approach you want to follow.',
     ),
     _SetupStep(
       title: 'Cuisine preferences',
-      subtitle: 'Add cuisines you enjoy and ones you would rather avoid.',
+      subtitle: 'Tell us what cuisines you like or dislike .',
     ),
     _SetupStep(
       title: 'Meal types',
@@ -674,7 +674,7 @@ class _MealRecommendationSetupPageState
             ),
             const SizedBox(height: 24),
             Text(
-              'Creating your meal plan',
+              'Creating your meals...',
               textAlign: TextAlign.center,
               style: AppTextStyles.title.copyWith(
                 fontSize: 28,
@@ -683,7 +683,7 @@ class _MealRecommendationSetupPageState
             ),
             const SizedBox(height: 10),
             Text(
-              'The assistant is using your goals, preferences and food choices to build personalised recommendations.',
+              'Your goals, allergies and dietary preferences are being used to build your personalised meal recommendations.',
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMuted.copyWith(
                 color: AppColours.textMuted,
@@ -1362,14 +1362,6 @@ class _MealRecommendationSetupPageState
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          'View personalised meals for your selected meal types.',
-          style: AppTextStyles.bodyMuted.copyWith(
-            color: AppColours.textMuted,
-            fontSize: 16,
-          ),
-        ),
         const SizedBox(height: 22),
         _buildSummaryCard(plan),
         const SizedBox(height: 14),
@@ -1414,7 +1406,7 @@ class _MealRecommendationSetupPageState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _refinedSummary(plan.summary),
+            'View the generated meals plans for your selected meal types, based on your profile and preferences.',
             style: AppTextStyles.bodyMuted.copyWith(
               color: AppColours.textMuted,
               fontSize: 15,
@@ -1431,24 +1423,6 @@ class _MealRecommendationSetupPageState
         ],
       ),
     );
-  }
-
-  String _refinedSummary(String summary) {
-    final trimmed = summary.trim();
-    if (trimmed.isEmpty) {
-      return 'Here are meal ideas matched to your setup.';
-    }
-
-    if (trimmed.length <= 120) {
-      return trimmed;
-    }
-
-    final sentenceEnd = trimmed.indexOf(RegExp(r'[.!?]'));
-    if (sentenceEnd > 35 && sentenceEnd <= 120) {
-      return trimmed.substring(0, sentenceEnd + 1);
-    }
-
-    return '${trimmed.substring(0, 117).trimRight()}...';
   }
 
   Widget _buildEmptyResultsCard() {

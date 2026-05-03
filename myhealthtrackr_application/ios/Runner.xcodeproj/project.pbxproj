@@ -198,6 +198,7 @@
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				BB63EC52B10C628115792C07 /* [CP] Embed Pods Frameworks */,
+				8F2B4A1C2D3E4F5061728394 /* Code Sign Native Asset Frameworks */,
 			);
 			buildRules = (
 			);
@@ -284,6 +285,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+		};
+		8F2B4A1C2D3E4F5061728394 /* Code Sign Native Asset Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Code Sign Native Asset Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n\nif [ -z \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ] || [ \"${CODE_SIGNING_ALLOWED:-YES}\" = \"NO\" ] || [ \"${CODE_SIGNING_REQUIRED:-YES}\" = \"NO\" ]; then\n  exit 0\nfi\n\nframeworks_dir=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nif [ ! -d \"$frameworks_dir\" ]; then\n  exit 0\nfi\n\nfind \"$frameworks_dir\" -maxdepth 1 -type d -name \"*.framework\" -print0 | while IFS= read -r -d '' framework; do\n  bundle_id=$(/usr/libexec/PlistBuddy -c \"Print :CFBundleIdentifier\" \"$framework/Info.plist\" 2>/dev/null || true)\n  case \"$bundle_id\" in\n    io.flutter.flutter.native-assets.*)\n      echo \"Code Signing native asset framework $framework with Identity ${EXPANDED_CODE_SIGN_IDENTITY_NAME:-$EXPANDED_CODE_SIGN_IDENTITY}\"\n      /usr/bin/codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" ${OTHER_CODE_SIGN_FLAGS:-} --preserve-metadata=identifier,entitlements \"$framework\"\n      ;;\n  esac\ndone\n";
 		};
 		694D3FD1C9DCED2E769D0565 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;

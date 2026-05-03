@@ -93,10 +93,6 @@ class _MyAppState extends State<MyApp> {
           builders: {
             TargetPlatform.android: _NoTransitionsPageTransitionsBuilder(),
             TargetPlatform.iOS: _NoTransitionsPageTransitionsBuilder(),
-            TargetPlatform.macOS: _NoTransitionsPageTransitionsBuilder(),
-            TargetPlatform.linux: _NoTransitionsPageTransitionsBuilder(),
-            TargetPlatform.windows: _NoTransitionsPageTransitionsBuilder(),
-            TargetPlatform.fuchsia: _NoTransitionsPageTransitionsBuilder(),
           },
         ),
       ),

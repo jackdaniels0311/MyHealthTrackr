@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:myhealthtrackr/themes/app_colours.dart';
 import 'package:myhealthtrackr/themes/app_text_styles.dart';
+import 'package:snackify/enums/snack_enums.dart';
+import 'package:snackify/initializers.dart';
+import 'package:snackify/overlay_entry.dart';
 
 enum AppSnackType { success, error, warning, info }
 
 final class AppSnack {
   const AppSnack._();
+
+  static const double _bottomNavigationClearance = 112;
+
+  static OverlayEntry? _activeEntry;
+  static AnimationController? _activeAnimationController;
 
   static void show(
     BuildContext context,
@@ -15,75 +23,70 @@ final class AppSnack {
   }) {
     final resolvedType = type ?? _inferType(message);
     final accent = _accentFor(resolvedType);
-    final messenger = ScaffoldMessenger.of(context);
+    final overlayState = Overlay.of(context);
+    final animationController = createAnimationController(
+      overlayState,
+      const Duration(milliseconds: 260),
+    );
 
-    messenger
-      ..clearSnackBars()
-      ..showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 3),
-          backgroundColor: AppColours.transparent,
-          elevation: 0,
-          padding: EdgeInsets.zero,
-          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          content: Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColours.secondary,
-                  AppColours.inputFill,
-                  accent.withValues(alpha: 0.28),
-                ],
-                stops: const [0, 0.68, 1],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColours.shadowHeavy.withValues(alpha: 0.85),
-                  blurRadius: 22,
-                  offset: const Offset(0, 10),
-                ),
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.20),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(_iconFor(resolvedType), color: accent, size: 26),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title ?? _titleFor(resolvedType),
-                        style: _titleStyle,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(message, style: _messageStyle),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: messenger.hideCurrentSnackBar,
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: AppColours.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    _dismissActiveSnack();
+
+    late final OverlayEntry snackEntry;
+    snackEntry = buildOverlayEntry(
+      context: context,
+      title: Text(title ?? _titleFor(resolvedType), style: _titleStyle),
+      subtitle: Text(message, style: _messageStyle),
+      snackType: _snackifyTypeFor(resolvedType),
+      backgroundColor: AppColours.inputFill,
+      iconColor: accent,
+      icon: _iconFor(resolvedType),
+      speakOnShow: false,
+      elevation: 0,
+      margin: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+      borderRadius: BorderRadius.circular(18),
+      offset: const Offset(4, _bottomNavigationClearance),
+      animationController: animationController,
+      backgroundGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          AppColours.inputFill,
+          AppColours.inputFill,
+          accent.withValues(alpha: 0.28),
+        ],
+        stops: const [0, 0.68, 1],
+      ),
+      snackShadow: [
+        BoxShadow(
+          color: AppColours.shadowHeavy.withValues(alpha: 0.85),
+          blurRadius: 22,
+          offset: const Offset(0, 10),
         ),
-      );
+        BoxShadow(
+          color: accent.withValues(alpha: 0.20),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
+        ),
+      ],
+      position: SnackPosition.bottom,
+      actionWidget: IconButton(
+        onPressed: _dismissActiveSnack,
+        icon: const Icon(Icons.close_rounded, color: AppColours.textMuted),
+      ),
+      onClose: _dismissActiveSnack,
+      onDismissed: (_) => _disposeActiveSnack(),
+    );
+
+    _activeEntry = snackEntry;
+    _activeAnimationController = animationController;
+    overlayState.insert(snackEntry);
+    animationController.forward();
+
+    Future<void>.delayed(const Duration(seconds: 3), () {
+      if (_activeEntry == snackEntry) {
+        _dismissActiveSnack();
+      }
+    });
   }
 
   static void success(BuildContext context, String message, {String? title}) {
@@ -163,5 +166,37 @@ final class AppSnack {
       AppSnackType.warning => Icons.warning_rounded,
       AppSnackType.info => Icons.info_rounded,
     };
+  }
+
+  static SnackType _snackifyTypeFor(AppSnackType type) {
+    return switch (type) {
+      AppSnackType.success => SnackType.success,
+      AppSnackType.error => SnackType.error,
+      AppSnackType.warning => SnackType.warning,
+      AppSnackType.info => SnackType.info,
+    };
+  }
+
+  static void _dismissActiveSnack() {
+    final entry = _activeEntry;
+    final animationController = _activeAnimationController;
+    if (entry == null || animationController == null) {
+      return;
+    }
+
+    _activeEntry = null;
+    _activeAnimationController = null;
+
+    animationController.reverse().then((_) {
+      entry.remove();
+      animationController.dispose();
+    });
+  }
+
+  static void _disposeActiveSnack() {
+    _activeEntry?.remove();
+    _activeAnimationController?.dispose();
+    _activeEntry = null;
+    _activeAnimationController = null;
   }
 }
