@@ -74,7 +74,7 @@ class GeminiMealPlanService:
         }
         response_json = self._post_generate_content(payload)
         model_result = self._parse_model_result(response_json)
-        _validate_model_result_safety(
+        model_result = _filter_model_result_safety(
             model_result,
             profile=profile,
             preferences=preferences,
@@ -309,26 +309,36 @@ def _clean_list(values: list[str]) -> list[str]:
     return cleaned
 
 
-def _validate_model_result_safety(
+def _filter_model_result_safety(
     model_result: MealPlanModelResult,
     *,
     profile: UserProfile,
     preferences: MealPlanGenerateRequest | None,
-) -> None:
+) -> MealPlanModelResult:
     blocked_terms = _blocked_food_terms(profile=profile, preferences=preferences)
     if not blocked_terms:
-        return
+        return model_result
 
+    safe_meal_groups = []
     for meal_group in model_result.meal_groups:
+        safe_options = []
         for option in meal_group.options:
             searchable_values = [option.name]
             searchable_values.extend(ingredient.name for ingredient in option.ingredients)
             searchable_text = _normalize_for_matching(" ".join(searchable_values))
-            for term in blocked_terms:
-                if f" {term} " in searchable_text:
-                    raise GeminiMealPlanError(
-                        "Gemini returned a meal plan containing an excluded food."
-                    )
+            if any(f" {term} " in searchable_text for term in blocked_terms):
+                continue
+            safe_options.append(option)
+
+        if safe_options:
+            safe_meal_groups.append(meal_group.model_copy(update={"options": safe_options}))
+
+    if not safe_meal_groups:
+        raise GeminiMealPlanError(
+            "Gemini returned only meal options containing excluded foods."
+        )
+
+    return model_result.model_copy(update={"meal_groups": safe_meal_groups})
 
 
 def _blocked_food_terms(

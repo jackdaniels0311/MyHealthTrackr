@@ -1060,6 +1060,7 @@ class _AccountCreatedPageState extends State<AccountCreatedPage> {
               ),
               backgroundColor: AppColours.inputFill,
               selectedColor: AppColours.primary.withValues(alpha: 0.28),
+              checkmarkColor: AppColours.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
                 side: BorderSide(

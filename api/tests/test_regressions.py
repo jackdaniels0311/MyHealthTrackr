@@ -44,7 +44,7 @@ class SecurityRegressionTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             UserProfileIn(date_of_birth=too_old)
 
-    def test_meal_plan_rejects_explicit_allergy_in_ingredients(self):
+    def test_meal_plan_filters_explicit_allergy_in_ingredients(self):
         model_result = MealPlanModelResult.model_validate(
             {
                 "summary": "Meals match the target.",
@@ -74,22 +74,79 @@ class SecurityRegressionTests(unittest.TestCase):
         profile = UserProfile(user_id=1, allergies="peanut")
 
         with self.assertRaises(gemini_meal_plans.GeminiMealPlanError):
-            gemini_meal_plans._validate_model_result_safety(
+            gemini_meal_plans._filter_model_result_safety(
                 model_result,
                 profile=profile,
                 preferences=None,
             )
 
-    def test_meal_plan_rejects_common_allergy_wording(self):
+    def test_meal_plan_filters_common_allergy_wording(self):
         for user_text, ingredient in (
             ("peanut allergy", "peanut butter"),
             ("allergic to shellfish", "shellfish"),
             ("avoid eggs", "eggs"),
         ):
             with self.subTest(user_text=user_text, ingredient=ingredient):
-                self._assert_model_rejects_excluded_food(user_text, ingredient)
+                self._assert_model_filters_excluded_food(user_text, ingredient)
 
-    def _assert_model_rejects_excluded_food(
+    def test_meal_plan_returns_safe_options_when_one_option_is_excluded(self):
+        model_result = MealPlanModelResult.model_validate(
+            {
+                "summary": "Meals match the target.",
+                "meal_groups": [
+                    {
+                        "meal_type": "Lunch",
+                        "options": [
+                            {
+                                "meal_type": "Lunch",
+                                "name": "Peanut noodles",
+                                "calories": 500,
+                                "protein": 25,
+                                "carbs": 65,
+                                "fat": 18,
+                                "fibre": 8,
+                                "sugar": 6,
+                                "ingredients": [
+                                    {"name": "peanut butter", "quantity": 20, "unit": "g"}
+                                ],
+                                "match_reason": "Fits the target.",
+                            },
+                            {
+                                "meal_type": "Lunch",
+                                "name": "Chicken rice bowl",
+                                "calories": 520,
+                                "protein": 38,
+                                "carbs": 58,
+                                "fat": 14,
+                                "fibre": 7,
+                                "sugar": 5,
+                                "ingredients": [
+                                    {"name": "chicken breast", "quantity": 130, "unit": "g"},
+                                    {"name": "brown rice", "quantity": 150, "unit": "g"},
+                                ],
+                                "match_reason": "Fits the target.",
+                            },
+                        ],
+                    }
+                ],
+            }
+        )
+        profile = UserProfile(user_id=1, allergies="peanut")
+
+        filtered_result = gemini_meal_plans._filter_model_result_safety(
+            model_result,
+            profile=profile,
+            preferences=None,
+        )
+
+        self.assertEqual(len(filtered_result.meal_groups), 1)
+        self.assertEqual(len(filtered_result.meal_groups[0].options), 1)
+        self.assertEqual(
+            filtered_result.meal_groups[0].options[0].name,
+            "Chicken rice bowl",
+        )
+
+    def _assert_model_filters_excluded_food(
         self,
         user_text: str,
         ingredient: str,
@@ -123,7 +180,7 @@ class SecurityRegressionTests(unittest.TestCase):
         profile = UserProfile(user_id=1, allergies=user_text)
 
         with self.assertRaises(gemini_meal_plans.GeminiMealPlanError):
-            gemini_meal_plans._validate_model_result_safety(
+            gemini_meal_plans._filter_model_result_safety(
                 model_result,
                 profile=profile,
                 preferences=None,

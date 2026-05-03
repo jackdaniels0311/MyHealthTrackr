@@ -145,7 +145,7 @@ class _PlansPageState extends State<PlansPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Get AI meal recommendations or manage saved meals for faster diary logging.',
+                'Get AI-generated meal recommendations or manage your saved meals.',
                 style: AppTextStyles.bodyMuted.copyWith(
                   color: _mutedText,
                   fontSize: 16,
