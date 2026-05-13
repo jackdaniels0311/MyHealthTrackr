@@ -105,14 +105,6 @@ class _HomePageState extends State<HomePage> {
         icon: AppIcons.grainRounded,
         accent: _carbColour,
       ),
-      // _ProgressStat(
-      //   label: 'Sleep',
-      //   value: 7.5,
-      //   goal: 8,
-      //   unit: 'hrs',
-      //   icon: AppIcons.nightlightRound,
-      //   accent: _sleepColour,
-      // ),
       _ProgressStat(
         label: 'Water',
         value: diary.totalWaterMl,
