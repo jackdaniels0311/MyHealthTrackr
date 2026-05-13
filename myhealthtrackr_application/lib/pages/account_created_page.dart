@@ -167,11 +167,13 @@ class _AccountCreatedPageState extends State<AccountCreatedPage> {
   }
 
   Future<void> _pickDateOfBirth() async {
+    final today = DateTime.now();
+    final latestDateAllowed = DateTime(today.year - 18, today.month, today.day);
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDateOfBirth ?? DateTime(2000, 1, 1),
       firstDate: DateTime(1900, 1, 1),
-      lastDate: DateTime.now(),
+      lastDate: latestDateAllowed,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -322,7 +324,7 @@ class _AccountCreatedPageState extends State<AccountCreatedPage> {
     ),
     const _ProfileSetupStep(
       title: 'Date of birth',
-      subtitle: 'Let us know your birthday.',
+      subtitle: 'Let us know your date of birth. You must be at least 18 years old to use MyHealthTrackr.',
     ),
     const _ProfileSetupStep(
       title: 'Gender',
